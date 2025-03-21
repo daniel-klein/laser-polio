@@ -1,4 +1,5 @@
 import time
+from copy import deepcopy
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -8,12 +9,15 @@ import pandas as pd
 import scipy.stats as stats
 import sciris as sc
 from alive_progress import alive_bar
+
+# from default_pars import pars as default_pars
 from laser_core.demographics.kmestimator import KaplanMeierEstimator
 from laser_core.demographics.pyramid import AliasedDistribution
 from laser_core.demographics.pyramid import load_pyramid_csv
 from laser_core.laserframe import LaserFrame
 from laser_core.migration import gravity
 from laser_core.migration import row_normalizer
+from laser_core.propertyset import PropertySet
 from laser_core.utils import calc_capacity
 from tqdm import tqdm
 
@@ -30,9 +34,13 @@ class SEIR_ABM:
     Disease state codes: 0=S, 1=E, 2=I, 3=R
     """
 
-    def __init__(self, pars, verbose=0.1):
+    def __init__(self, pars: PropertySet = None, verbose=0.1):
         sc.printcyan("Initializing simulation...")
-        self.pars = pars
+
+        # Load default parameters and optionally override with user-specified ones
+        self.pars = deepcopy(lp.default_pars)
+        if pars is not None:
+            self.pars += pars  # override default values
         pars = self.pars
         self.verbose = verbose
 
@@ -1106,8 +1114,7 @@ class RI_ABM:
 
     def step(self):
         # Suppose we have num_people individuals
-        # TODO: should this be set to self.people.count???
-        rand_vals = np.random.rand(int(1e5))  # this could be done clevererly
+        rand_vals = np.random.rand(self.people.count)  # this could be done clevererly
         fast_vaccination(
             self.step_size,
             self.people.node_id,
