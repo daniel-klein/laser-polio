@@ -1,18 +1,10 @@
 # Priorities
-- Track down what happened to the priority ordering
-    # Set the order in which components should be run during step()
-    PRIORITY_ORDER = [
-        "VitalDynamics_ABM",
-        "DiseaseState_ABM",
-        "RI_ABM",
-        "SIA_ABM",
-        "Transmission_ABM"
-    ]
 - Add vx efficacy by type
 - Rename variables to distinguish between exposure and infection
 - Testing
     - RI_abm
     - SIA_abm
+    - Revise test_vital_dynamics after component order fixes
     - Full models with real data
 - Set a random number seed
 - Use KM's gravity model scaling approach

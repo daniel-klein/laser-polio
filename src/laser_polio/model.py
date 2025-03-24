@@ -90,7 +90,7 @@ class SEIR_ABM:
     @components.setter
     def components(self, components: list) -> None:
         """
-        Sets up the components of the model and initializes instances and phases.
+        Sets up the components of the model in the order specified in default_pars.py and initializes instances and phases.
 
         This function takes a list of component types, creates an instance of each, and adds each callable component to the phase list.
         It also registers any components with an `on_birth` function with the `Births` component.
@@ -104,11 +104,20 @@ class SEIR_ABM:
             None
         """
 
-        self._components = components
-        self.instances = []  # instantiated instances of components
-        for component in components:
-            instance = component(self)
-            self.instances.append(instance)
+        # Get the default order from default_pars
+        default_order = lp.default_run_order
+
+        # Sort the provided list of component classes based on their string names
+        def get_name(cls):
+            return cls.__name__
+
+        component_lookup = {cls.__name__: cls for cls in components}
+        ordered_subset = [component_lookup[name] for name in default_order if name in component_lookup]
+
+        # Store and instantiate
+        self._components = ordered_subset
+        self.instances = [cls(self) for cls in ordered_subset]
+        print(f"Initialized components: {self.instances}")
 
     def run(self):
         sc.printcyan("Initialization complete. Running simulation...")

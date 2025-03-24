@@ -5,7 +5,7 @@ from laser_core.propertyset import PropertySet
 
 import laser_polio as lp
 
-__all__ = ["default_pars"]
+__all__ = ["default_pars", "default_run_order"]
 
 default_pars = PropertySet(
     {
@@ -46,3 +46,5 @@ default_pars = PropertySet(
         "life_expectancies": np.ones(5) * 65,  # example: 5 nodes
     }
 )
+
+default_run_order = ["VitalDynamics_ABM", "DiseaseState_ABM", "RI_ABM", "SIA_ABM", "Transmission_ABM"]
