@@ -16,8 +16,6 @@
     - Full models with real data
 - Set a random number seed
 - Use KM's gravity model scaling approach
-- Switch to gpkg files. Combine all the shapes from PIM & save as a single simplified gpkg file. 
-- Enable different RI rates over time
 - Check the RI & SIA figures - they're plotting strange results
 - Update the birth and death plot to summarize by country
 - Calibration
@@ -26,6 +24,7 @@
 - Reactive SIAs
 
 # Refinement
+- Enable different RI rates over time
 - Do we need sub-adm2 resolution? And if so, how do we handle the distance matrix to minimize file size? Consider making values nan if over some threshold?
 - Add EMOD style seasonality
 - Fork polio-immunity-mapping repo
