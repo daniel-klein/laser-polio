@@ -47,4 +47,5 @@ default_pars = PropertySet(
     }
 )
 
+# Order in which to run model components
 default_run_order = ["VitalDynamics_ABM", "DiseaseState_ABM", "RI_ABM", "SIA_ABM", "Transmission_ABM"]
