@@ -29,7 +29,7 @@ default_pars = PropertySet(
         "dur_inf": lp.gamma(shape=4.51, scale=5.32),  # Duration of the infectious state
         "p_paralysis": 1 / 2000,  # Probability of paralysis
         # Migration
-        "distances": [[0, 100], [100, 0]],  # Distance in km between nodes
+        "distances": np.array([[0, 100], [100, 0]]),  # Distance in km between nodes
         "gravity_k": 0.5,  # Gravity scaling constant
         "gravity_a": 1,  # Origin population exponent
         "gravity_b": 1,  # Destination population exponent

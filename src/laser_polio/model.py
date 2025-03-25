@@ -1100,6 +1100,8 @@ def fast_vaccination(
                     if rand_vals[i] < prob_take:  # Probability vaccine takes/protects
                         disease_state[i] = 3  # Move to Recovered state
                         local_protected[node] += 1  # Protected count
+                else:
+                    print(f"Agent {i} has disease_state {disease_state[i]}")
 
     # Merge results back
     for j in nb.prange(num_nodes):
@@ -1117,7 +1119,7 @@ class RI_ABM:
         # Calc date of RI (assume single point in time between 1st and 3rd dose)
         self.people.add_scalar_property("ri_timer", dtype=np.int32, default=-1)
         dob = self.people.date_of_birth
-        days_from_birth_to_ri = np.random.uniform(42, 98, self.people.count)  # Assume 6-14 weeks of age for vx
+        days_from_birth_to_ri = np.random.uniform(42, 98, len(self.people.ri_timer))  # Assume 6-14 weeks of age for vx
         self.people.ri_timer = dob + days_from_birth_to_ri
         sim.results.add_array_property(
             "ri_vaccinated", shape=(sim.nt, len(sim.nodes)), dtype=np.int32
@@ -1130,7 +1132,7 @@ class RI_ABM:
     def step(self):
         # Get vaccine efficacy
         strain = self.pars.vx_strain_ri
-        vx_eff = self.pars["vx_efficacy_by_strain"][strain]
+        vx_eff = self.pars["vx_efficacy"][strain]
         # Suppose we have num_people individuals
         rand_vals = np.random.rand(self.people.count)  # this could be done clevererly
         fast_vaccination(

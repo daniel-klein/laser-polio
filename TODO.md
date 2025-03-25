@@ -1,6 +1,8 @@
 # Priorities
 - Add vx efficacy by type
 - Add ri_timer calcs back in!!! 
+- Prevent births/vx on day 0...
+- OR find a better way to filter dob
 - Enable numba in fast_vaccination
 - Rename variables to distinguish between exposure and infection
 - Testing
