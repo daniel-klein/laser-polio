@@ -12,28 +12,13 @@ def setup_sim(dur=30, n_ppl=None, vx_prob_ri=0.5, cbr=None):
         cbr = np.array([30, 25])
     pars = PropertySet(
         {
-            "start_date": lp.date("2020-01-01"),
             "dur": dur,
             "n_ppl": n_ppl,
             "cbr": cbr,  # Birth rate per 1000/year
-            "age_pyramid_path": "data/Nigeria_age_pyramid_2024.csv",  # From https://www.populationpyramid.net/nigeria/2024/
             "init_immun": 0.0,  # initially immune
             "init_prev": 0.0,  # initially infected from any age
             "dur_exp": lp.constant(value=2),  # Duration of the exposed state
             "dur_inf": lp.constant(value=1),  # Duration of the infectious state
-            "p_paralysis": 1 / 2000,  # 1% paralysis probability
-            "r0": 14,  # Basic reproduction number
-            "beta_spatial": [0.5, 2.0],  # Spatial transmission scalar (multiplied by global rate)
-            "risk_mult_var": 4.0,  # Lognormal variance for the individual-level risk multiplier (risk of acquisition multiplier; mean = 1.0)
-            "corr_risk_inf": 0.8,  # Correlation between individual risk multiplier and individual infectivity (daily infectivity, mean = 14/24)
-            "seasonal_factor": 0.125,  # Seasonal variation in transmission
-            "seasonal_phase": 180,  # Phase of seasonal variation
-            "distances": np.array([[0, 1], [1, 0]]),  # Distance in km between nodes
-            "gravity_k": 0.5,  # Gravity scaling constant
-            "gravity_a": 1,  # Origin population exponent
-            "gravity_b": 1,  # Destination population exponent
-            "gravity_c": 2.0,  # Distance exponent
-            "max_migr_frac": 0.01,  # Fraction of population that migrates
             "vx_prob_ri": vx_prob_ri,  # Routine immunization probability
             "sia_schedule": [{"date": "2020-01-10", "nodes": [0], "age_range": (180, 365), "coverage": 0.6}],
             "sia_eff": [0.6, 0.8],  # SIA effectiveness per node
@@ -56,14 +41,28 @@ def test_ri_initialization():
     assert hasattr(sim.results, "ri_protected")
 
 
-def test_ri_manual():
-    """Ensure that routine immunization occurs at correct intervals."""
+def test_ri_manually_seeded():
+    """Ensure that routine immunization occurs when manually seeded."""
     n_vx = 1000
     dur = 28
     sim = setup_sim(dur=dur, vx_prob_ri=1.0)
     sim.people.ri_timer[:n_vx] = np.random.randint(0, dur, n_vx)  # Set timers to trigger vaccination
     sim.run()
-    assert sim.results.ri_protected.sum() >= n_vx, "No vaccinations occurred when expected."
+    assert sim.results.ri_vaccinated.sum() >= n_vx, "The number of vaccinations was lower than the number manually seeded."
+    assert sim.results.ri_protected.sum() >= n_vx, "The number of vaccinations was lower than the number manually seeded."
+
+
+def test_ri_on_births():
+    dur = 365
+    cbr = np.array([300, 250])
+    sim = setup_sim(dur=dur, cbr=cbr, vx_prob_ri=1.0)
+    sim.run()
+    assert sim.results.ri_vaccinated[0] > 0, "No routine immunizations occurred on births."
+    assert sim.results.ri_protected[0] > 0, "No routine immunizations occurred on births."
+
+
+def test_ri_zero():
+    pass
 
 
 def test_ri_vaccination_probability():
@@ -162,7 +161,9 @@ def test_sia_coverage_probability():
 
 if __name__ == "__main__":
     # test_ri_initialization()
-    # test_ri_manual()
+    # test_ri_manually_seeded()
+    test_ri_on_births()
+    test_ri_zero()
     test_ri_vaccination_probability()
     test_ri_no_effect_on_non_susceptibles()
     test_sia_initialization()
