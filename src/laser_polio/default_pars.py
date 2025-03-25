@@ -41,11 +41,19 @@ default_pars = PropertySet(
         },
         # Interventions
         "vx_prob_ri": None,
+        "vx_strain_ri": "perfect",
         "sia_schedule": None,
         "sia_eff": None,
         "life_expectancies": np.ones(5) * 65,  # example: 5 nodes
+        "vx_efficacy": {
+            "perfect": 1.0,
+            "topv": 0.75,  # TODO
+            "nOPV2": 0.8,  # TODO
+            "bopv": 0.0,  # TODO
+        },
     }
 )
+
 
 # Order in which to run model components
 default_run_order = ["VitalDynamics_ABM", "DiseaseState_ABM", "RI_ABM", "SIA_ABM", "Transmission_ABM"]

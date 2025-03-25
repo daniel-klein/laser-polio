@@ -1,5 +1,7 @@
 # Priorities
 - Add vx efficacy by type
+- Add ri_timer calcs back in!!! 
+- Enable numba in fast_vaccination
 - Rename variables to distinguish between exposure and infection
 - Testing
     - RI_abm

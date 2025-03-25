@@ -1063,6 +1063,7 @@ def fast_vaccination(
     ri_timer,
     sim_t,
     vx_prob_ri,
+    vx_eff,
     results_ri_vaccinated,
     results_ri_protected,
     rand_vals,
@@ -1087,17 +1088,18 @@ def fast_vaccination(
         if disease_state[i] < 0:  # Skip dead or inactive agents
             continue
 
-        prob_ri = vx_prob_ri if isinstance(vx_prob_ri, float) else vx_prob_ri[node]
+        prob_vx = vx_prob_ri if isinstance(vx_prob_ri, float) else vx_prob_ri[node]
+        prob_take = vx_eff if isinstance(vx_eff, float) else vx_eff[node]
 
         # if sim_t - 14 < date_of_birth[i] + 182 <= sim_t:
         ri_timer[i] -= step_size
         if ri_timer[i] <= 0 and ri_timer[i] >= -step_size:  # off-by one?
-            if disease_state[i] == 0:  # Must be susceptible
-                if rand_vals[i] < prob_ri:  # Vaccination probability
-                    disease_state[i] = 3  # Move to Recovered state
-                    local_protected[node] += 1
-
-            local_vaccinated[node] += prob_ri  # Expected vaccinated count
+            if rand_vals[i] < prob_vx:  # Probability of vaccination
+                local_vaccinated[node] += 1  # Vaccinated count
+                if disease_state[i] == 0:  # If susceptible
+                    if rand_vals[i] < prob_take:  # Probability vaccine takes/protects
+                        disease_state[i] = 3  # Move to Recovered state
+                        local_protected[node] += 1  # Protected count
 
     # Merge results back
     for j in nb.prange(num_nodes):
@@ -1112,7 +1114,11 @@ class RI_ABM:
         self.people = sim.people
         self.nodes = sim.nodes
         self.pars = sim.pars
+        # Calc date of RI (assume single point in time between 1st and 3rd dose)
         self.people.add_scalar_property("ri_timer", dtype=np.int32, default=-1)
+        dob = self.people.date_of_birth
+        days_from_birth_to_ri = np.random.uniform(42, 98, self.people.count)  # Assume 6-14 weeks of age for vx
+        self.people.ri_timer = dob + days_from_birth_to_ri
         sim.results.add_array_property(
             "ri_vaccinated", shape=(sim.nt, len(sim.nodes)), dtype=np.int32
         )  # Track number of people vaccinated by RI
@@ -1122,6 +1128,9 @@ class RI_ABM:
         self.results = sim.results
 
     def step(self):
+        # Get vaccine efficacy
+        strain = self.pars.vx_strain_ri
+        vx_eff = self.pars["vx_efficacy_by_strain"][strain]
         # Suppose we have num_people individuals
         rand_vals = np.random.rand(self.people.count)  # this could be done clevererly
         fast_vaccination(
@@ -1132,6 +1141,7 @@ class RI_ABM:
             self.people.ri_timer,
             self.sim.t,
             self.pars["vx_prob_ri"],
+            vx_eff,
             self.results.ri_vaccinated,
             self.results.ri_protected,
             rand_vals,
