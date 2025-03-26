@@ -1,4 +1,6 @@
 # Priorities
+- Try running calibration by myself - see the docs
+- Export pars as pkl
 - Add vx efficacy by type
 - Enable numba in fast_vaccination
 - Rename variables to distinguish between exposure and infection
