@@ -793,7 +793,7 @@ class Transmission_ABM:
 
         # 2) Spatially redistribute infectivity among nodes
         transfer = (node_beta_sums * self.network).astype(np.float64)  # Don't round here, we'll handle fractional infections later
-        transfer *= 10
+        transfer *= 10  # TODO - what is this about???
         # Ensure net contagion remains positive after movement
         node_beta_sums += transfer.sum(axis=1) - transfer.sum(axis=0)
         node_beta_sums = np.maximum(node_beta_sums, 0)  # Prevent negative contagion
@@ -1091,8 +1091,8 @@ def fast_vaccination(
         prob_vx = vx_prob_ri if isinstance(vx_prob_ri, float) else vx_prob_ri[node]
         prob_take = vx_eff if isinstance(vx_eff, float) else vx_eff[node]
 
-        print(f"Agent {i} in disease state {disease_state[i]}")
-        print("prob_vx=", prob_vx, "prob_take=", prob_take)
+        # print(f"Agent {i} in disease state {disease_state[i]}")
+        # print("prob_vx=", prob_vx, "prob_take=", prob_take)
 
         ri_timer[i] -= step_size
         eligible = False
@@ -1105,12 +1105,12 @@ def fast_vaccination(
         if eligible:
             if rand_vals[i] < prob_vx:  # Check probability of vaccination
                 local_vaccinated[node] += 1  # Increment vaccinated count
-                print(f"Vaccinated {i} at node {node}")
+                # print(f"Vaccinated {i} at node {node}")
                 if disease_state[i] == 0:  # If susceptible
                     if rand_vals[i] < prob_take:  # Check probability that vaccine takes/protects
                         disease_state[i] = 3  # Move to Recovered state
                         local_protected[node] += 1  # Increment protected count
-                        print(f"Protected {i} at node {node}")
+                        # print(f"Protected {i} at node {node}")
 
     # Merge results back
     for j in nb.prange(num_nodes):
