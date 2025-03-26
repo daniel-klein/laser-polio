@@ -18,6 +18,7 @@
 - Reactive SIAs
 
 # Refinement
+- Count number of exportations for calibration
 - Enable different RI rates over time
 - Do we need sub-adm2 resolution? And if so, how do we handle the distance matrix to minimize file size? Consider making values nan if over some threshold?
 - Add EMOD style seasonality
@@ -26,7 +27,6 @@
 - Get total pop data, not just <5
 - Investigate extra dot_names in the pop dataset
 - Look into age-specific death rates
-- Setup EULAs - currently are only age based, needs to be immunity based
 - Import/seed infections throughout the sim after OPV use?
 - Write pars to disk
 - Add partial susceptibility & paralysis protection
@@ -34,4 +34,4 @@
 - Add in default pars and allow user pars to overwrite them
 - Add CBR by country-year
 - Add age pyramid by country
-- Calculate distance between gps coordinates
+- In post(?), resample I count to get a variety of paralysis counts
