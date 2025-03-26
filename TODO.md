@@ -1,8 +1,5 @@
 # Priorities
 - Add vx efficacy by type
-- Add ri_timer calcs back in!!! 
-- Prevent births/vx on day 0...
-- OR find a better way to filter dob
 - Enable numba in fast_vaccination
 - Rename variables to distinguish between exposure and infection
 - Testing
@@ -10,6 +7,7 @@
     - SIA_abm
     - Revise test_vital_dynamics after component order fixes
     - Full models with real data
+- Enable vx transmission
 - Set a random number seed
 - Use KM's gravity model scaling approach
 - Check the RI & SIA figures - they're plotting strange results

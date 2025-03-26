@@ -1054,7 +1054,7 @@ class VitalDynamics_ABM:
             plt.show()
 
 
-# @nb.njit(parallel=True)
+@nb.njit(parallel=True)
 def fast_vaccination(
     step_size,
     node_id,
@@ -1082,8 +1082,8 @@ def fast_vaccination(
     local_vaccinated = np.zeros(num_nodes, dtype=np.float32)
     local_protected = np.zeros(num_nodes, dtype=np.int32)
 
-    for i in np.arange(num_people):
-        # for i in nb.prange(num_people):
+    # for i in np.arange(num_people):
+    for i in nb.prange(num_people):
         node = node_id[i]
         if disease_state[i] < 0:  # Skip dead or inactive agents
             continue
@@ -1091,21 +1091,30 @@ def fast_vaccination(
         prob_vx = vx_prob_ri if isinstance(vx_prob_ri, float) else vx_prob_ri[node]
         prob_take = vx_eff if isinstance(vx_eff, float) else vx_eff[node]
 
-        # if sim_t - 14 < date_of_birth[i] + 182 <= sim_t:
+        print(f"Agent {i} in disease state {disease_state[i]}")
+        print("prob_vx=", prob_vx, "prob_take=", prob_take)
+
         ri_timer[i] -= step_size
-        if ri_timer[i] <= 0 and ri_timer[i] >= -step_size:  # off-by one?
-            if rand_vals[i] < prob_vx:  # Probability of vaccination
-                local_vaccinated[node] += 1  # Vaccinated count
+        eligible = False
+        # If first vx, account for the fact that no components are run on day 0
+        if sim_t == step_size:
+            eligible = ri_timer[i] <= 0 and ri_timer[i] >= -step_size
+        elif sim_t > step_size:
+            eligible = ri_timer[i] <= 0 and ri_timer[i] > -step_size
+
+        if eligible:
+            if rand_vals[i] < prob_vx:  # Check probability of vaccination
+                local_vaccinated[node] += 1  # Increment vaccinated count
+                print(f"Vaccinated {i} at node {node}")
                 if disease_state[i] == 0:  # If susceptible
-                    if rand_vals[i] < prob_take:  # Probability vaccine takes/protects
+                    if rand_vals[i] < prob_take:  # Check probability that vaccine takes/protects
                         disease_state[i] = 3  # Move to Recovered state
-                        local_protected[node] += 1  # Protected count
-                else:
-                    print(f"Agent {i} has disease_state {disease_state[i]}")
+                        local_protected[node] += 1  # Increment protected count
+                        print(f"Protected {i} at node {node}")
 
     # Merge results back
     for j in nb.prange(num_nodes):
-        results_ri_vaccinated[sim_t, j] += int(local_vaccinated[j])
+        results_ri_vaccinated[sim_t, j] += local_vaccinated[j]
         results_ri_protected[sim_t, j] += local_protected[j]
 
 
