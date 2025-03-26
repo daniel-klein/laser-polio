@@ -1079,7 +1079,7 @@ def fast_vaccination(
     num_nodes = results_ri_vaccinated.shape[1]  # Assuming shape (timesteps, nodes)
 
     # Thread-local storage for results
-    local_vaccinated = np.zeros(num_nodes, dtype=np.float32)
+    local_vaccinated = np.zeros(num_nodes, dtype=np.int32)
     local_protected = np.zeros(num_nodes, dtype=np.int32)
 
     # for i in np.arange(num_people):
