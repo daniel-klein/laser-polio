@@ -1,8 +1,10 @@
 # Priorities
+- Check with CL about numba issues with RI
+- Watch for JB to merge branch to main
+- Merge my interventions branch
 - Try running calibration by myself - see the docs
 - Export pars as pkl
 - Add vx efficacy by type
-- Enable numba in fast_vaccination
 - Rename variables to distinguish between exposure and infection
 - Testing
     - RI_abm
