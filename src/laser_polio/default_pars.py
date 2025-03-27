@@ -51,6 +51,12 @@ default_pars = PropertySet(
             "nOPV2": 0.8,  # TODO
             "bopv": 0.0,  # TODO
         },
+        # Component step sizes
+        "step_size_VitalDynamics_ABM": 7,
+        "step_size_DiseaseState_ABM": 1,
+        "step_size_RI_ABM": 14,
+        "step_size_SIA_ABM": 1,
+        "step_size_Transmission_ABM": 1,
     }
 )
 

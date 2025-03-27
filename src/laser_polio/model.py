@@ -891,12 +891,12 @@ class Transmission_ABM:
 
 
 class VitalDynamics_ABM:
-    def __init__(self, sim, step_size=7):
+    def __init__(self, sim):
         self.sim = sim
         self.people = sim.people
         self.nodes = sim.nodes
         self.results = sim.results
-        self.step_size = step_size  # Number of days between vital dynamics steps
+        self.step_size = sim.pars.step_size_VitalDynamics_ABM  # Number of days between vital dynamics steps
 
         # Setup the age and vital rate components
         pars = sim.pars
@@ -1122,9 +1122,9 @@ def fast_vaccination(
 
 
 class RI_ABM:
-    def __init__(self, sim, step_size=14):
+    def __init__(self, sim):
         self.sim = sim
-        self.step_size = step_size  # Number of days between RI steps
+        self.step_size = sim.pars.step_size_RI_ABM  # Number of days between RI steps
         self.people = sim.people
         self.nodes = sim.nodes
         self.pars = sim.pars
