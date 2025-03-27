@@ -101,9 +101,9 @@ def test_ri_vx_prob():
     n_protected = np.sum(sim.results.ri_protected)
     n_r = np.sum(sim.results.R[-1])
 
-    print(f"Expected: {n_exp}, Vaccinated: {n_vx}, Protected: {n_protected}, Recovered: {n_r}")
+    # print(f"Expected: {n_exp}, Vaccinated: {n_vx}, Protected: {n_protected}, Recovered: {n_r}")
 
-    assert np.isclose(n_exp, n_vx, atol=75), "Vaccination rate does not match probability."
+    assert np.isclose(n_exp, n_vx, atol=10), "Vaccination rate does not match probability."
     assert n_vx == n_protected == n_r, "Vaccinated, protected, and Recovered counts should be equal if vx efficacy is 100%"
 
 
@@ -189,10 +189,10 @@ def test_ri_no_effect_on_non_susceptibles():
 
 
 if __name__ == "__main__":
-    # test_ri_initialization()
-    # test_ri_manually_seeded()
-    # test_ri_on_births()
-    # test_ri_zero()
+    test_ri_initialization()
+    test_ri_manually_seeded()
+    test_ri_on_births()
+    test_ri_zero()
     test_ri_vx_prob()
     test_ri_no_effect_on_non_susceptibles()
     # test_sia_initialization()

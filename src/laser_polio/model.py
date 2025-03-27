@@ -237,11 +237,11 @@ class DiseaseState_ABM:
         sim.people.add_scalar_property("infection_timer", dtype=np.int32, default=0)
         sim.people.infection_timer[:] = self.pars.dur_inf(self.people.capacity)
 
-        sim.results.add_array_property("S", shape=(sim.nt, len(self.nodes)), dtype=np.float32)
-        sim.results.add_array_property("E", shape=(sim.nt, len(self.nodes)), dtype=np.float32)
-        sim.results.add_array_property("I", shape=(sim.nt, len(self.nodes)), dtype=np.float32)
-        sim.results.add_array_property("R", shape=(sim.nt, len(self.nodes)), dtype=np.float32)
-        sim.results.add_array_property("paralyzed", shape=(sim.nt, len(self.nodes)), dtype=np.float32)
+        sim.results.add_array_property("S", shape=(sim.nt, len(self.nodes)), dtype=np.int32)
+        sim.results.add_array_property("E", shape=(sim.nt, len(self.nodes)), dtype=np.int32)
+        sim.results.add_array_property("I", shape=(sim.nt, len(self.nodes)), dtype=np.int32)
+        sim.results.add_array_property("R", shape=(sim.nt, len(self.nodes)), dtype=np.int32)
+        sim.results.add_array_property("paralyzed", shape=(sim.nt, len(self.nodes)), dtype=np.int32)
 
         def do_init_imm():
             print(f"Before immune initialization, we have {sim.people.count} active agents.")
@@ -331,7 +331,7 @@ class DiseaseState_ABM:
 
                     # Generate mortality-adjusted population over time
                     time_range = np.arange(T)[:, None]  # Create time indices
-                    self.results.R[:, :] += (node_counts * np.exp(-mortality_rates * time_range)).astype(np.float32)
+                    self.results.R[:, :] += (node_counts * np.exp(-mortality_rates * time_range)).astype(np.int32)
 
                 # Get our EULA populations
                 node_counts = get_node_counts_pre_squash(filter_mask, active_count_init)
@@ -1077,19 +1077,21 @@ def fast_vaccination(
 
     num_people = count
     num_nodes = results_ri_vaccinated.shape[1]  # Assuming shape (timesteps, nodes)
+    num_threads = nb.get_num_threads()
 
-    # Thread-local storage for results
-    local_vaccinated = np.zeros(num_nodes, dtype=np.int32)
-    local_protected = np.zeros(num_nodes, dtype=np.int32)
+    # Allocate per-thread local arrays
+    local_vaccinated = np.zeros((num_threads, num_nodes), dtype=np.int32)
+    local_protected = np.zeros((num_threads, num_nodes), dtype=np.int32)
 
     # for i in np.arange(num_people):
     for i in nb.prange(num_people):
+        thread_id = nb.get_thread_id()
         node = node_id[i]
         if disease_state[i] < 0:  # Skip dead or inactive agents
             continue
 
-        prob_vx = vx_prob_ri if isinstance(vx_prob_ri, float) else vx_prob_ri[node]
-        prob_take = vx_eff if isinstance(vx_eff, float) else vx_eff[node]
+        prob_vx = vx_prob_ri[node]
+        prob_take = vx_eff
 
         # print(f"Agent {i} in disease state {disease_state[i]}")
         # print("prob_vx=", prob_vx, "prob_take=", prob_take)
@@ -1104,18 +1106,19 @@ def fast_vaccination(
 
         if eligible:
             if rand_vals[i] < prob_vx:  # Check probability of vaccination
-                local_vaccinated[node] += 1  # Increment vaccinated count
+                local_vaccinated[thread_id, node] += 1  # Increment vaccinated count
                 # print(f"Vaccinated {i} at node {node}")
                 if disease_state[i] == 0:  # If susceptible
                     if rand_vals[i] < prob_take:  # Check probability that vaccine takes/protects
                         disease_state[i] = 3  # Move to Recovered state
-                        local_protected[node] += 1  # Increment protected count
+                        local_protected[thread_id, node] += 1  # Increment protected count
                         # print(f"Protected {i} at node {node}")
 
-    # Merge results back
-    for j in nb.prange(num_nodes):
-        results_ri_vaccinated[sim_t, j] += local_vaccinated[j]
-        results_ri_protected[sim_t, j] += local_protected[j]
+    # Merge per-thread results
+    for thread_id in range(num_threads):
+        for j in range(num_nodes):
+            results_ri_vaccinated[sim_t, j] += local_vaccinated[thread_id, j]
+            results_ri_protected[sim_t, j] += local_protected[thread_id, j]
 
 
 class RI_ABM:
@@ -1142,8 +1145,15 @@ class RI_ABM:
         # Get vaccine efficacy
         strain = self.pars.vx_strain_ri
         vx_eff = self.pars["vx_efficacy"][strain]
+        vx_prob_ri = self.pars["vx_prob_ri"]
+        num_nodes = len(self.sim.nodes)
+        # Promote to 1D arrays if needed
+        if np.isscalar(vx_prob_ri):
+            vx_prob_ri = np.full(num_nodes, vx_prob_ri, dtype=np.float64)
+
         # Suppose we have num_people individuals
         rand_vals = np.random.rand(self.people.count)  # this could be done clevererly
+
         fast_vaccination(
             self.step_size,
             self.people.node_id,
@@ -1151,7 +1161,7 @@ class RI_ABM:
             self.people.date_of_birth,
             self.people.ri_timer,
             self.sim.t,
-            self.pars["vx_prob_ri"],
+            vx_prob_ri,
             vx_eff,
             self.results.ri_vaccinated,
             self.results.ri_protected,
