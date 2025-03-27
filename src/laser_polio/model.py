@@ -95,33 +95,26 @@ class SEIR_ABM:
         This function takes a list of component types, creates an instance of each, and adds each callable component to the phase list.
         It also registers any components with an `on_birth` function with the `Births` component.
 
-        Allows setting components with optional kwargs:
-        sim.components = [
-            lp.VitalDynamics_ABM,
-            (lp.RI_ABM, {"step_size": 21}),
-            ...
-        ]
+        Args:
+
+            components (list): A list of component classes to be initialized and integrated into the model.
+
+        Returns:
+
+            None
         """
+
+        # Get the default order from default_pars
         default_order = lp.default_run_order
 
-        # Normalize to (name, constructor) pairs
-        component_lookup = {}
-        for item in components:
-            if isinstance(item, tuple):
-                cls, kwargs = item
-                name = cls.__name__
+        # Sort the provided list of component classes based on their string names
+        def get_name(cls):
+            return cls.__name__
 
-                def wrapper(sim, cls=cls, kwargs=kwargs):  # capture args safely
-                    return cls(sim, **kwargs)
-
-                wrapper.__name__ = name
-                component_lookup[name] = wrapper
-            else:
-                component_lookup[item.__name__] = item
-
-        # Preserve default run order
+        component_lookup = {cls.__name__: cls for cls in components}
         ordered_subset = [component_lookup[name] for name in default_order if name in component_lookup]
 
+        # Store and instantiate
         self._components = ordered_subset
         self.instances = [cls(self) for cls in ordered_subset]
         print(f"Initialized components: {self.instances}")

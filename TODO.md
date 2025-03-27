@@ -1,4 +1,6 @@
 # Priorities
+- Add step size to pars
+- Drop ABM term from components
 - Watch for JB to merge branch to main
 - Merge my interventions branch
 - Try running calibration by myself - see the docs
