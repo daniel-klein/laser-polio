@@ -143,8 +143,9 @@ def test_sia_execution_on_scheduled_date():
     }
     sim = setup_sim(new_pars=sia_pars)
     sim.run()
-    assert np.all(sim.results.n_vx_sia[9, :] == 0), "SIA should not run before scheduled date."
-    assert np.any(sim.results.n_vx_sia[10, :] > 0), "SIA did not execute on the scheduled date."
+    # 2019-01-10 maps to tick/timestep/index 9
+    assert np.all(sim.results.n_vx_sia[0:9, :] == 0), "SIA should not run before scheduled date."
+    assert np.any(sim.results.n_vx_sia[9, :] > 0), "SIA did not execute on the scheduled date."
 
 
 # def test_sia_age_based_vaccination():

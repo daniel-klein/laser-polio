@@ -6,7 +6,7 @@
 - Check the RI & SIA figures - they're plotting strange results
 - Merge my interventions branch
 
-- Need to use the immunity_ri_nOPV2 column and use that as including 
+- Need to use the immunity_ri_nOPV2 column and use that as including
 
 - Curate R0 file from Hil: Kurt_sharing\step04b_sia_randeffect\20241220_regression
 - Try scaling R0. E.g. per convo with HL & KF: R0_i = exp{m * (b_i - mean(b))/sd(b) + log R0), so the random effect b_i is standardized to mean zero and std dev = 1, then rescaled with m and centered. For example if you thought that R0 is usually centered at 10 but ranges from 5 to 20, then you would pick m to scale within those bounds.
@@ -22,7 +22,7 @@
 - Set a random number seed
 - Use KM's gravity model scaling approach
 - Update the birth and death plot to summarize by country.
-- Plot expected births? 
+- Plot expected births?
 - Calibration
 - Add step size to components (e.g., like vital dynamics)
 - Save results & specify frequency

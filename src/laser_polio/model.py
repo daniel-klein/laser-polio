@@ -1224,7 +1224,7 @@ class SIA_ABM:
         self.results.add_array_property("n_vx_sia", shape=(sim.nt, len(sim.nodes)), dtype=np.int32)
 
         # Store vaccination schedule
-        self.sia_schedule = sim.pars["sia_schedule"]
+        self.sia_schedule = sim.pars["sia_schedule"] if sim.pars["sia_schedule"] else []
         # Convert all 'date' values in self.sia_schedule to datetime.date
         for event in self.sia_schedule:
             event["date"] = lp.date(event["date"])
@@ -1246,8 +1246,8 @@ class SIA_ABM:
         """
         min_age, max_age = event["age_range"]
         nodes_to_vaccinate = event["nodes"]
-        vaccinetype = event["vaccinetype"]
-        vx_eff = self.pars["vx_efficacy"][vaccinetype]
+        # vaccinetype = event["vaccinetype"]
+        # vx_eff = self.pars["vx_efficacy"][vaccinetype]
 
         node_ids = self.people.node_id[: self.people.count]
         disease_states = self.people.disease_state[: self.people.count]
@@ -1263,13 +1263,13 @@ class SIA_ABM:
 
             # Apply vaccine coverage probability
             sia_coverage = self.pars["sia_eff"][node]
-            prob_vx_sia = sia_coverage * vx_eff
+            # prob_vx_sia = sia_coverage * vx_eff
 
             rand_nums = np.random.rand(np.sum(eligible))
             vaccinated = rand_nums < sia_coverage
             vaccinated_indices = np.where(eligible)[0][vaccinated]
 
-            sia_vx_protected = rand_nums < prob_vx_sia
+            # sia_vx_protected = rand_nums < prob_vx_sia
 
             # Move vaccinated individuals to the Recovered (R) state
             disease_states[vaccinated_indices] = 3

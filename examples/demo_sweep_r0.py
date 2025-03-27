@@ -1,5 +1,6 @@
 import pickle
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import sciris as sc
@@ -254,8 +255,6 @@ pars = ConfigurablePropertySet(
 
 sc.printcyan("Done.")
 
-
-import matplotlib.pyplot as plt
 
 # Define the range of r0 values to sweep
 r0_values = np.linspace(0, 200, 5)  # You can adjust how many points to simulate
