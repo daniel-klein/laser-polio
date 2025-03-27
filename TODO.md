@@ -1,19 +1,20 @@
 # Priorities
-- Add step size to pars
+- Add vx efficacy by type
+- Test SIA_abm
+- Check the RI & SIA figures - they're plotting strange results
+- Merge my interventions branch
+
+- Get R0 input file from Hil
+- Check transmission probability with real data. Why do we need R0 so high!?
+- Test full models with real data
 - Drop ABM term from components
 - Watch for JB to merge branch to main
-- Merge my interventions branch
 - Try running calibration by myself - see the docs
 - Export pars as pkl
-- Add vx efficacy by type
 - Rename variables to distinguish between exposure and infection
-- Testing
-    - SIA_abm
-    - Full models with real data
 - Enable vx transmission
 - Set a random number seed
 - Use KM's gravity model scaling approach
-- Check the RI & SIA figures - they're plotting strange results
 - Update the birth and death plot to summarize by country.
 - Plot expected births? 
 - Calibration

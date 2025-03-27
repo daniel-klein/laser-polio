@@ -9,8 +9,6 @@ import pandas as pd
 import scipy.stats as stats
 import sciris as sc
 from alive_progress import alive_bar
-
-# from default_pars import pars as default_pars
 from laser_core.demographics.kmestimator import KaplanMeierEstimator
 from laser_core.demographics.pyramid import AliasedDistribution
 from laser_core.demographics.pyramid import load_pyramid_csv
@@ -38,7 +36,7 @@ class SEIR_ABM:
         sc.printcyan("Initializing simulation...")
 
         # Load default parameters and optionally override with user-specified ones
-        self.pars = deepcopy(lp.default_pars)
+        self.pars = deepcopy(lp.pars)
         if pars is not None:
             self.pars += pars  # override default values
         pars = self.pars
@@ -90,7 +88,7 @@ class SEIR_ABM:
     @components.setter
     def components(self, components: list) -> None:
         """
-        Sets up the components of the model in the order specified in default_pars.py and initializes instances and phases.
+        Sets up the components of the model in the order specified in pars.py and initializes instances and phases.
 
         This function takes a list of component types, creates an instance of each, and adds each callable component to the phase list.
         It also registers any components with an `on_birth` function with the `Births` component.
@@ -104,7 +102,7 @@ class SEIR_ABM:
             None
         """
 
-        # Get the default order from default_pars
+        # Get the default order from default pars
         default_order = lp.default_run_order
 
         # Sort the provided list of component classes based on their string names
