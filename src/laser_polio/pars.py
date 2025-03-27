@@ -47,9 +47,15 @@ default_pars = PropertySet(
         "life_expectancies": np.ones(5) * 65,  # example: 5 nodes
         "vx_efficacy": {
             "perfect": 1.0,
-            "topv": 0.75,  # TODO
-            "nOPV2": 0.8,  # TODO
-            "bopv": 0.0,  # TODO
+            "bOPV": 0,
+            "IPV": 0,
+            "IPV + bOPV": 0,
+            "mOPV1": 0,
+            "mOPV2": 1.0,  # TODO
+            "mOPV3": 0,
+            "nOPV2": 1.0,  # TODO
+            "nOPV2 + fIPV": 1.0,  # TODO
+            "topv": 1.0,  # TODO
         },
         # Component step sizes
         "step_size_VitalDynamics_ABM": 7,

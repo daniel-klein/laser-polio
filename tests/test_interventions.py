@@ -5,7 +5,7 @@ import laser_polio as lp
 
 
 # Fixture to set up the simulation environment
-def setup_sim(dur=30, n_ppl=None, vx_prob_ri=0.5, cbr=None, r0=14):
+def setup_sim(dur=30, n_ppl=None, vx_prob_ri=0.5, cbr=None, r0=14, new_pars=None):
     if n_ppl is None:
         n_ppl = [50000, 50000]
     if cbr is None:
@@ -21,10 +21,9 @@ def setup_sim(dur=30, n_ppl=None, vx_prob_ri=0.5, cbr=None, r0=14):
             "dur_exp": lp.constant(value=2),  # Duration of the exposed state
             "dur_inf": lp.constant(value=1),  # Duration of the infectious state
             "vx_prob_ri": vx_prob_ri,  # Routine immunization probability
-            "sia_schedule": [{"date": "2020-01-10", "nodes": [0], "age_range": (180, 365), "coverage": 0.6}],
-            "sia_eff": [0.6, 0.8],  # SIA effectiveness per node
         }
     )
+    pars += new_pars if new_pars is not None else {}
     sim = lp.SEIR_ABM(pars)
     sim.components = [lp.VitalDynamics_ABM, lp.DiseaseState_ABM, lp.RI_ABM, lp.SIA_ABM, lp.Transmission_ABM]
     return sim
@@ -125,22 +124,27 @@ def test_ri_no_effect_on_non_susceptibles():
 # --- SIA_ABM Tests ---
 
 
-# def test_sia_initialization():
-#     """Ensure that SIA_ABM initializes correctly."""
-#     sim = setup_sim()
-#     sim.run()
-#     assert hasattr(sim.results, "sia_vx")
+def test_sia_init():
+    """Ensure that SIA_ABM initializes correctly."""
+    sia_pars = {
+        "sia_schedule": [{"date": "2019-01-10", "nodes": [0], "age_range": (0, 5 * 365)}],
+        "sia_eff": [0.6, 0.8],  # SIA effectiveness per node
+    }
+    sim = setup_sim(new_pars=sia_pars)
+    sim.run()
+    assert hasattr(sim.results, "n_vx_sia")
 
 
-# def test_sia_execution_on_scheduled_date():
-#     """Ensure that SIA occurs on the correct date."""
-#     sim = setup_sim()
-#     sim.run()
-#     sim.t = 9  # Set to one day before the scheduled date
-#     sim.step()
-#     assert np.all(sim.results.sia_vx[9, :] == 0), "SIA should not run before scheduled date."
-#     sim.step()  # Move to scheduled date
-#     assert np.any(sim.results.sia_vx[10, :] > 0), "SIA did not execute on the scheduled date."
+def test_sia_execution_on_scheduled_date():
+    """Ensure that SIA occurs on the correct date."""
+    sia_pars = {
+        "sia_schedule": [{"date": "2019-01-10", "nodes": [0], "age_range": (0, 5 * 365), "vaccinetype": "nOPV2"}],
+        "sia_eff": [0.6, 0.8],  # SIA effectiveness per node
+    }
+    sim = setup_sim(new_pars=sia_pars)
+    sim.run()
+    assert np.all(sim.results.n_vx_sia[9, :] == 0), "SIA should not run before scheduled date."
+    assert np.any(sim.results.n_vx_sia[10, :] > 0), "SIA did not execute on the scheduled date."
 
 
 # def test_sia_age_based_vaccination():
@@ -189,14 +193,14 @@ def test_ri_no_effect_on_non_susceptibles():
 
 
 if __name__ == "__main__":
-    test_ri_initialization()
-    test_ri_manually_seeded()
-    test_ri_on_births()
-    test_ri_zero()
-    test_ri_vx_prob()
-    test_ri_no_effect_on_non_susceptibles()
-    # test_sia_initialization()
-    # test_sia_execution_on_scheduled_date()
+    # test_ri_initialization()
+    # test_ri_manually_seeded()
+    # test_ri_on_births()
+    # test_ri_zero()
+    # test_ri_vx_prob()
+    # test_ri_no_effect_on_non_susceptibles()
+    # test_sia_init()
+    test_sia_execution_on_scheduled_date()
     # test_sia_age_based_vaccination()
     # test_sia_node_based_targeting()
     # test_sia_coverage_probability()

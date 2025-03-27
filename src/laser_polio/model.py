@@ -36,7 +36,7 @@ class SEIR_ABM:
         sc.printcyan("Initializing simulation...")
 
         # Load default parameters and optionally override with user-specified ones
-        self.pars = deepcopy(lp.pars)
+        self.pars = deepcopy(lp.default_pars)
         if pars is not None:
             self.pars += pars  # override default values
         pars = self.pars
@@ -1212,6 +1212,7 @@ class SIA_ABM:
                 - 'nodes': List of nodes to target
                 - 'age_range': Tuple (min_age, max_age) in days
                 - 'coverage': Vaccine coverage rate (0 to 1)
+                - 'vaccinetype': The vaccine type which is used to determine efficacy
         """
         self.sim = sim
         self.people = sim.people
@@ -1220,10 +1221,13 @@ class SIA_ABM:
         self.results = sim.results
 
         # Add result tracking for SIA
-        self.results.add_array_property("sia_vx", shape=(sim.nt, len(sim.nodes)), dtype=np.int32)
+        self.results.add_array_property("n_vx_sia", shape=(sim.nt, len(sim.nodes)), dtype=np.int32)
 
         # Store vaccination schedule
         self.sia_schedule = sim.pars["sia_schedule"]
+        # Convert all 'date' values in self.sia_schedule to datetime.date
+        for event in self.sia_schedule:
+            event["date"] = lp.date(event["date"])
 
     def step(self):
         t = self.sim.t  # Current timestep
@@ -1242,6 +1246,8 @@ class SIA_ABM:
         """
         min_age, max_age = event["age_range"]
         nodes_to_vaccinate = event["nodes"]
+        vaccinetype = event["vaccinetype"]
+        vx_eff = self.pars["vx_efficacy"][vaccinetype]
 
         node_ids = self.people.node_id[: self.people.count]
         disease_states = self.people.disease_state[: self.people.count]
@@ -1256,27 +1262,32 @@ class SIA_ABM:
             eligible = alive_in_node & in_age_range & susceptible
 
             # Apply vaccine coverage probability
-            sia_eff = self.pars["sia_eff"][node]
-            vaccinated = np.random.rand(np.sum(eligible)) < sia_eff
+            sia_coverage = self.pars["sia_eff"][node]
+            prob_vx_sia = sia_coverage * vx_eff
+
+            rand_nums = np.random.rand(np.sum(eligible))
+            vaccinated = rand_nums < sia_coverage
             vaccinated_indices = np.where(eligible)[0][vaccinated]
+
+            sia_vx_protected = rand_nums < prob_vx_sia
 
             # Move vaccinated individuals to the Recovered (R) state
             disease_states[vaccinated_indices] = 3
 
             # Track the number vaccinated
             # TODO: clarify that this is the number of people who enter Recovered state, not number vaccinated
-            self.results.sia_vx[self.sim.t, node] = vaccinated.sum()
+            self.results.n_vx_sia[self.sim.t, node] = vaccinated.sum()
 
     def log(self, t):
         pass
 
     def plot(self, save=False, results_path=None):
-        self.plot_cum_sia_vx(save=save, results_path=results_path)
+        self.plot_cum_n_vx_sia(save=save, results_path=results_path)
 
-    def plot_cum_sia_vx(self, save=False, results_path=None):
-        cum_sia_vx = np.cumsum(self.results.sia_vx, axis=0)
+    def plot_cum_vx_sia(self, save=False, results_path=None):
+        cum_vx_sia = np.cumsum(self.results.vx_eff, axis=0)
         plt.figure(figsize=(10, 6))
-        plt.plot(cum_sia_vx)
+        plt.plot(cum_vx_sia)
         plt.title("Supplemental Immunization Activity (SIA) Vaccination")
         plt.xlabel("Time (Timesteps)")
         plt.ylabel("Cumulative Vaccinated")
