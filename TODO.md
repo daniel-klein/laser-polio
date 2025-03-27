@@ -1,5 +1,4 @@
 # Priorities
-- Check with CL about numba issues with RI
 - Watch for JB to merge branch to main
 - Merge my interventions branch
 - Try running calibration by myself - see the docs
@@ -7,7 +6,6 @@
 - Add vx efficacy by type
 - Rename variables to distinguish between exposure and infection
 - Testing
-    - RI_abm
     - SIA_abm
     - Revise test_vital_dynamics after component order fixes
     - Full models with real data
@@ -15,13 +13,15 @@
 - Set a random number seed
 - Use KM's gravity model scaling approach
 - Check the RI & SIA figures - they're plotting strange results
-- Update the birth and death plot to summarize by country
+- Update the birth and death plot to summarize by country.
+- Plot expected births? 
 - Calibration
 - Add step size to components (e.g., like vital dynamics)
 - Save results & specify frequency
 - Reactive SIAs
 
 # Refinement
+
 - Count number of exportations for calibration
 - Enable different RI rates over time
 - Do we need sub-adm2 resolution? And if so, how do we handle the distance matrix to minimize file size? Consider making values nan if over some threshold?
