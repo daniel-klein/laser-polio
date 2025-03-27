@@ -7,7 +7,6 @@
 - Rename variables to distinguish between exposure and infection
 - Testing
     - SIA_abm
-    - Revise test_vital_dynamics after component order fixes
     - Full models with real data
 - Enable vx transmission
 - Set a random number seed

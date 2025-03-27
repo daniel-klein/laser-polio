@@ -1,5 +1,3 @@
-from functools import partial
-
 import numpy as np
 from laser_core.propertyset import PropertySet
 
@@ -19,8 +17,9 @@ def setup_sim(step_size=1):
         }
     )
     sim = lp.SEIR_ABM(pars)
-    steppy_vd = partial(lp.VitalDynamics_ABM, step_size=step_size)
-    sim.components = [steppy_vd]
+    sim.components = [
+        (lp.VitalDynamics_ABM, {"step_size": step_size}),
+    ]
     return sim
 
 
@@ -138,8 +137,9 @@ def test_zero_birth_rate():
         }
     )
     sim = lp.SEIR_ABM(pars)
-    steppy_vd = partial(lp.VitalDynamics_ABM, step_size=1)
-    sim.components = [steppy_vd]
+    sim.components = [
+        (lp.VitalDynamics_ABM, {"step_size": 1}),
+    ]
     initial_population = sim.people.count
     sim.run()
     assert sim.people.count == initial_population  # No new births
