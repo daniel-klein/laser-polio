@@ -128,13 +128,42 @@ def test_sia_schedule():
     """Ensure that SIA occurs on the correct date."""
     sia_pars = {
         "sia_schedule": [{"date": "2019-01-10", "nodes": [0], "age_range": (0, 5 * 365), "vaccinetype": "nOPV2"}],
-        "sia_eff": [0.6, 0.8],  # SIA effectiveness per node
+        "vx_prob_sia": [0.6, 0.8],  # SIA effectiveness per node
     }
     sim = setup_sim(new_pars=sia_pars)
     sim.run()
-    assert hasattr(sim.results, "n_vx_sia"), "SIA component is missing results array"
-    assert np.all(sim.results.n_vx_sia[9, :] == 0), "SIA should not run before scheduled date."
-    assert np.any(sim.results.n_vx_sia[10, :] > 0), "SIA did not execute on the scheduled date."
+
+    assert hasattr(sim.results, "sia_vaccinated"), "SIA component is missing results array"
+    assert hasattr(sim.results, "sia_protected"), "SIA component is missing results array"
+
+    n_vx_day10 = np.sum(sim.results.sia_vaccinated[9, :])
+    n_vx_rest = np.sum(sim.results.sia_vaccinated) - n_vx_day10
+
+    assert np.any(n_vx_day10 > 0), "SIA did not execute on the scheduled date."
+    assert np.all(n_vx_rest == 0), "SIA should not run on any other dates."
+    assert sim.results.sia_vaccinated[9, 1] == 0, "SIA should not have affected individuals in node 1."
+
+    exp_protected = n_vx_day10 * 0.56  # 56% of vaccinated individuals should be protected since using nOPV2
+    assert np.isclose(np.sum(sim.results.sia_protected), exp_protected, atol=100), (
+        "SIA should protect 56% of vaccinated individuals since using nOPV2."
+    )
+
+    # Check if the number vaccinated is close to the expected value
+    alive_in_node = (sim.people.node_id == 0) & (sim.people.disease_state >= 0)
+    age = sim.t - sim.people.date_of_birth[alive_in_node]  # Age of individuals
+    age_eligible = np.sum(age < 5 * 365)  # Filter to <5 years old
+    exp_vx = age_eligible * sim.pars.vx_prob_sia[0]  # Expected number of vaccinated individuals
+    assert np.isclose(n_vx_day10, exp_vx, atol=100), "Number of vaccinated individuals does not match expected value."
+
+    # Check recovered count
+    n_recovered = np.sum(sim.results.R[-1])
+    assert n_recovered > 0, "No individuals recovered after SIA."
+    assert n_recovered == np.sum(sim.results.sia_protected), "Number of recovered individuals does not match expected value."
+
+    # Check ages of recovereds
+    recovereds = sim.people.disease_state == 3
+    ages = sim.t - sim.people.date_of_birth[recovereds]
+    assert np.all(ages < (5 * 365 + 20)), "Recovered individuals should be <5 years old."
 
 
 # def test_sia_age_based_vaccination():
@@ -150,36 +179,6 @@ def test_sia_schedule():
 #     not_vaccinated = np.sum(sim.people.disease_state[10:20] == 3)
 #     assert vaccinated > 0, "Eligible individuals were not vaccinated."
 #     assert not_vaccinated == 0, "Ineligible individuals were vaccinated."
-
-
-# def test_sia_node_based_targeting():
-#     """Ensure that only targeted nodes receive SIA vaccination."""
-#     sim = setup_sim()
-#     sim.run()
-#     sim.people.node_id[:10] = 0  # Targeted node
-#     sim.people.node_id[10:20] = 1  # Untargeted node
-#     sim.people.date_of_birth[:20] = -300  # All eligible age-wise
-#     sim.people.disease_state[:20] = 0  # All susceptible
-#     sim.t = 10  # Move to scheduled date
-#     sim.step()
-#     vaccinated_targeted = np.sum(sim.people.disease_state[:10] == 3)
-#     vaccinated_untargeted = np.sum(sim.people.disease_state[10:20] == 3)
-#     assert vaccinated_targeted > 0, "Targeted nodes did not receive vaccination."
-#     assert vaccinated_untargeted == 0, "Untargeted nodes received vaccination."
-
-
-# def test_sia_coverage_probability():
-#     """Ensure SIA vaccination occurs at the expected probability."""
-#     sim = setup_sim()
-#     sim.run()
-#     sim.people.node_id[:100] = 0  # All in the targeted node
-#     sim.people.date_of_birth[:100] = -300  # All eligible age-wise
-#     sim.people.disease_state[:100] = 0  # All susceptible
-#     sim.t = 10  # Move to scheduled date
-#     sim.step()
-#     vaccinated = np.sum(sim.people.disease_state[:100] == 3)
-#     expected_vx_rate = sim.pars.sia_eff[0]
-#     assert np.isclose(vaccinated / 100, expected_vx_rate, atol=0.1), "SIA coverage rate does not match expected probability."
 
 
 if __name__ == "__main__":
