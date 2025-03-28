@@ -1,5 +1,10 @@
 name: build
-on: [pull_request, workflow_dispatch]
+on:
+  pull_request:
+    types: [ready_for_review, review_requested]
+  workflow_dispatch:
+    branches:
+      - '*'
 jobs:
   test:
     name: ${{ matrix.name }}

@@ -1113,10 +1113,12 @@ def fast_vaccination(
                         # print(f"Protected {i} at node {node}")
 
     # Merge per-thread results
-    for thread_id in range(num_threads):
-        for j in range(num_nodes):
-            results_ri_vaccinated[sim_t, j] += local_vaccinated[thread_id, j]
-            results_ri_protected[sim_t, j] += local_protected[thread_id, j]
+    # for thread_id in range(num_threads):
+    #     for j in range(num_nodes):
+    #         results_ri_vaccinated[sim_t, j] += local_vaccinated[thread_id, j]
+    #         results_ri_protected[sim_t, j] += local_protected[thread_id, j]
+    results_ri_vaccinated[sim_t] = local_vaccinated.sum(axis=0)
+    results_ri_protected[sim_t] = local_protected.sum(axis=0)
 
 
 class RI_ABM:
