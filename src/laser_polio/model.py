@@ -1076,7 +1076,6 @@ def fast_ri(
 
     # Allocate per-thread local arrays
     local_vaccinated = np.zeros((num_threads, num_nodes), dtype=np.int32)
-    local_protected = np.zeros((num_threads, num_nodes), dtype=np.int32)
 
     # for i in np.arange(num_people):
     for i in nb.prange(num_people):
