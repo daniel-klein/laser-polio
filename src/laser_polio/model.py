@@ -1113,10 +1113,12 @@ def fast_vaccination(
                         # print(f"Protected {i} at node {node}")
 
     # Merge per-thread results
-    for thread_id in range(num_threads):
-        for j in range(num_nodes):
-            results_ri_vaccinated[sim_t, j] += local_vaccinated[thread_id, j]
-            results_ri_protected[sim_t, j] += local_protected[thread_id, j]
+    # for thread_id in range(num_threads):
+    #     for j in range(num_nodes):
+    #         results_ri_vaccinated[sim_t, j] += local_vaccinated[thread_id, j]
+    #         results_ri_protected[sim_t, j] += local_protected[thread_id, j]
+    results_ri_vaccinated[sim_t] = local_vaccinated.sum(axis=0)
+    results_ri_protected[sim_t] = local_protected.sum(axis=0)
 
 
 class RI_ABM:
@@ -1224,7 +1226,7 @@ class SIA_ABM:
         self.results.add_array_property("n_vx_sia", shape=(sim.nt, len(sim.nodes)), dtype=np.int32)
 
         # Store vaccination schedule
-        self.sia_schedule = sim.pars["sia_schedule"]
+        self.sia_schedule = sim.pars["sia_schedule"] if sim.pars["sia_schedule"] else []
         # Convert all 'date' values in self.sia_schedule to datetime.date
         for event in self.sia_schedule:
             event["date"] = lp.date(event["date"])
@@ -1246,8 +1248,8 @@ class SIA_ABM:
         """
         min_age, max_age = event["age_range"]
         nodes_to_vaccinate = event["nodes"]
-        vaccinetype = event["vaccinetype"]
-        vx_eff = self.pars["vx_efficacy"][vaccinetype]
+        # vaccinetype = event["vaccinetype"]
+        # vx_eff = self.pars["vx_efficacy"][vaccinetype]
 
         node_ids = self.people.node_id[: self.people.count]
         disease_states = self.people.disease_state[: self.people.count]

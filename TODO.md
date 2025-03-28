@@ -23,7 +23,7 @@
 - Set a random number seed
 - Use KM's gravity model scaling approach
 - Update the birth and death plot to summarize by country.
-- Plot expected births? 
+- Plot expected births?
 - Calibration
 - Add step size to components (e.g., like vital dynamics)
 - Save results & specify frequency
