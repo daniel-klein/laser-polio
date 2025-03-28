@@ -1263,20 +1263,72 @@ class SIA_ABM:
 
             # Apply vaccine coverage probability
             sia_coverage = self.pars["sia_eff"][node]
-            prob_vx_sia = sia_coverage * vx_eff
 
+
+
+            # TODO: use the same logic as in RI
             rand_nums = np.random.rand(np.sum(eligible))
+            for i in len(eligible):
+                if 
             vaccinated = rand_nums < sia_coverage
             vaccinated_indices = np.where(eligible)[0][vaccinated]
-
-            sia_vx_protected = rand_nums < prob_vx_sia
-
             # Move vaccinated individuals to the Recovered (R) state
             disease_states[vaccinated_indices] = 3
+            sia_vx_protected = vaccinated and (rand_nums < vx_eff)
+
+
 
             # Track the number vaccinated
             # TODO: clarify that this is the number of people who enter Recovered state, not number vaccinated
             self.results.n_vx_sia[self.sim.t, node] = vaccinated.sum()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            # for i in np.arange(num_people):
+            for i in nb.prange(num_people):
+                thread_id = nb.get_thread_id()
+                node = node_id[i]
+                if disease_state[i] < 0:  # Skip dead or inactive agents
+                    continue
+
+                prob_vx = vx_prob_ri[node]
+                prob_take = vx_eff
+
+                # print(f"Agent {i} in disease state {disease_state[i]}")
+                # print("prob_vx=", prob_vx, "prob_take=", prob_take)
+
+                ri_timer[i] -= step_size
+                eligible = False
+                # If first vx, account for the fact that no components are run on day 0
+                if sim_t == step_size:
+                    eligible = ri_timer[i] <= 0 and ri_timer[i] >= -step_size
+                elif sim_t > step_size:
+                    eligible = ri_timer[i] <= 0 and ri_timer[i] > -step_size
+
+                if eligible:
+                    if rand_vals[i] < prob_vx:  # Check probability of vaccination
+                        local_vaccinated[thread_id, node] += 1  # Increment vaccinated count
+                        # print(f"Vaccinated {i} at node {node}")
+                        if disease_state[i] == 0:  # If susceptible
+                            if rand_vals[i] < prob_take:  # Check probability that vaccine takes/protects
+                                disease_state[i] = 3  # Move to Recovered state
+                                local_protected[thread_id, node] += 1  # Increment protected count
+                                # print(f"Protected {i} at node {node}")
+
+
 
     def log(self, t):
         pass

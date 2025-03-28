@@ -124,18 +124,7 @@ def test_ri_no_effect_on_non_susceptibles():
 # --- SIA_ABM Tests ---
 
 
-def test_sia_init():
-    """Ensure that SIA_ABM initializes correctly."""
-    sia_pars = {
-        "sia_schedule": [{"date": "2019-01-10", "nodes": [0], "age_range": (0, 5 * 365)}],
-        "sia_eff": [0.6, 0.8],  # SIA effectiveness per node
-    }
-    sim = setup_sim(new_pars=sia_pars)
-    sim.run()
-    assert hasattr(sim.results, "n_vx_sia")
-
-
-def test_sia_execution_on_scheduled_date():
+def test_sia_schedule():
     """Ensure that SIA occurs on the correct date."""
     sia_pars = {
         "sia_schedule": [{"date": "2019-01-10", "nodes": [0], "age_range": (0, 5 * 365), "vaccinetype": "nOPV2"}],
@@ -143,6 +132,7 @@ def test_sia_execution_on_scheduled_date():
     }
     sim = setup_sim(new_pars=sia_pars)
     sim.run()
+    assert hasattr(sim.results, "n_vx_sia"), "SIA component is missing results array"
     assert np.all(sim.results.n_vx_sia[9, :] == 0), "SIA should not run before scheduled date."
     assert np.any(sim.results.n_vx_sia[10, :] > 0), "SIA did not execute on the scheduled date."
 
@@ -199,8 +189,7 @@ if __name__ == "__main__":
     # test_ri_zero()
     # test_ri_vx_prob()
     # test_ri_no_effect_on_non_susceptibles()
-    # test_sia_init()
-    test_sia_execution_on_scheduled_date()
+    test_sia_schedule()
     # test_sia_age_based_vaccination()
     # test_sia_node_based_targeting()
     # test_sia_coverage_probability()
