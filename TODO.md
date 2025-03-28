@@ -1,6 +1,4 @@
 # Priorities
-- Add vx efficacy by type
-- Test SIA_abm
 - Check the RI & SIA figures - they're plotting strange results
 - Merge my interventions branch
 
@@ -8,7 +6,7 @@
 
 - Curate SIA data from Hil: Kurt_sharing\step04b_sia_randeffect\20241220_regression
 - Change terminology from SIA efficacy to SIA coverage spatial heterogeneity
-- Need to use the immunity_ri_nOPV2 column and use that as including 
+- Need to use the immunity_ri_nOPV2 column and use that as including efficacy
 - Remember to move RE processing out of sim and into data curation
 
 - Curate R0 file from Hil: Kurt_sharing\step04b_sia_randeffect\20241220_regression
@@ -16,7 +14,6 @@
 - Check transmission probability with real data. Why do we need R0 so high!?
 - Test full models with real data
 - Drop ABM term from components
-- Watch for JB to merge branch to main
 - Export pars as pkl
 - Rename variables to distinguish between exposure and infection
 - Enable vx transmission
@@ -25,7 +22,6 @@
 - Update the birth and death plot to summarize by country.
 - Plot expected births?
 - Calibration
-- Add step size to components (e.g., like vital dynamics)
 - Save results & specify frequency
 - Reactive SIAs
 

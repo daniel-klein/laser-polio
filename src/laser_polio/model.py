@@ -1057,11 +1057,9 @@ def fast_ri(
     step_size,
     node_id,
     disease_state,
-    date_of_birth,
     ri_timer,
     sim_t,
     vx_prob_ri,
-    vx_eff,
     results_ri_vaccinated,
     results_ri_protected,
     rand_vals,
@@ -1089,7 +1087,6 @@ def fast_ri(
             continue
 
         prob_vx = vx_prob_ri[node]
-        prob_take = vx_eff
 
         # print(f"Agent {i} in disease state {disease_state[i]}")
         # print("prob_vx=", prob_vx, "prob_take=", prob_take)
@@ -1105,12 +1102,10 @@ def fast_ri(
         if eligible:
             if rand_vals[i] < prob_vx:  # Check probability of vaccination
                 local_vaccinated[thread_id, node] += 1  # Increment vaccinated count
-                # print(f"Vaccinated {i} at node {node}")
                 if disease_state[i] == 0:  # If susceptible
-                    if rand_vals[i] < prob_vx * prob_take:  # Check probability that vaccine takes/protects
-                        disease_state[i] = 3  # Move to Recovered state
-                        local_protected[thread_id, node] += 1  # Increment protected count
-                        # print(f"Protected {i} at node {node}")
+                    # We don't check for vx_eff here, since that is already accounted for in the prob_vx file
+                    disease_state[i] = 3  # Move to Recovered state
+                    local_protected[thread_id, node] += 1  # Increment protected count
 
     # Merge per-thread results
     for thread_id in range(num_threads):
@@ -1140,10 +1135,7 @@ class RI_ABM:
         self.results = sim.results
 
     def step(self):
-        # Get vaccine efficacy
-        strain = self.pars.vx_strain_ri
-        vx_eff = self.pars["vx_efficacy"][strain]
-        vx_prob_ri = self.pars["vx_prob_ri"]
+        vx_prob_ri = self.pars["vx_prob_ri"]  # Includes coverage & efficacy
         num_nodes = len(self.sim.nodes)
         # Promote to 1D arrays if needed
         if np.isscalar(vx_prob_ri):
@@ -1156,11 +1148,9 @@ class RI_ABM:
             self.step_size,
             self.people.node_id,
             self.people.disease_state,
-            self.people.date_of_birth,
             self.people.ri_timer,
             self.sim.t,
             vx_prob_ri,
-            vx_eff,
             self.results.ri_vaccinated,
             self.results.ri_protected,
             rand_vals,
@@ -1310,8 +1300,8 @@ class SIA_ABM:
         # Check if there is an SIA event today
         for event in self.sia_schedule:
             if event["date"] == self.sim.datevec[t]:
-                nodes_to_vaccinate = event["nodes"]
-                vx_prob_sia = self.pars["vx_prob_sia"]
+                nodes_to_vaccinate = np.array(event["nodes"], dtype=np.int32)  # Convert to NumPy array
+                vx_prob_sia = np.array(self.pars["vx_prob_sia"], dtype=np.float32)  # Convert to NumPy array
                 vaccinetype = event["vaccinetype"]
                 vx_eff = self.pars["vx_efficacy"][vaccinetype]
                 min_age, max_age = event["age_range"]

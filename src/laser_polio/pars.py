@@ -40,8 +40,7 @@ default_pars = PropertySet(
             "CENTER_LON": np.array([0, 1]),
         },
         # Interventions
-        "vx_prob_ri": None,
-        "vx_strain_ri": "perfect",
+        "vx_prob_ri": None,  # Should include coverage and efficacy from expected number of RI doses
         "sia_schedule": None,
         "vx_prob_sia": None,
         "life_expectancies": np.ones(5) * 65,  # example: 5 nodes

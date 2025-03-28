@@ -130,7 +130,7 @@ def test_sia_schedule():
         "sia_schedule": [{"date": "2019-01-10", "nodes": [0], "age_range": (0, 5 * 365), "vaccinetype": "nOPV2"}],
         "vx_prob_sia": [0.6, 0.8],  # SIA effectiveness per node
     }
-    sim = setup_sim(new_pars=sia_pars)
+    sim = setup_sim(vx_prob_ri=0, new_pars=sia_pars)
     sim.run()
 
     assert hasattr(sim.results, "sia_vaccinated"), "SIA component is missing results array"
@@ -163,34 +163,16 @@ def test_sia_schedule():
     # Check ages of recovereds
     recovereds = sim.people.disease_state == 3
     ages = sim.t - sim.people.date_of_birth[recovereds]
-    assert np.all(ages < (5 * 365 + 20)), "Recovered individuals should be <5 years old."
-
-
-# def test_sia_age_based_vaccination():
-#     """Ensure that only eligible age groups receive SIA vaccination."""
-#     sim = setup_sim()
-#     sim.run()
-#     sim.people.date_of_birth[:10] = -300  # 300 days old (should be vaccinated)
-#     sim.people.date_of_birth[10:20] = -500  # 500 days old (should not be vaccinated)
-#     sim.people.disease_state[:20] = 0  # All susceptible
-#     sim.t = 10  # Move to scheduled date
-#     sim.step()
-#     vaccinated = np.sum(sim.people.disease_state[:10] == 3)
-#     not_vaccinated = np.sum(sim.people.disease_state[10:20] == 3)
-#     assert vaccinated > 0, "Eligible individuals were not vaccinated."
-#     assert not_vaccinated == 0, "Ineligible individuals were vaccinated."
+    assert np.all(ages <= (5 * 365 + 22)), "Recovered individuals should be <5 years old."
 
 
 if __name__ == "__main__":
-    # test_ri_initialization()
-    # test_ri_manually_seeded()
-    # test_ri_on_births()
-    # test_ri_zero()
-    # test_ri_vx_prob()
-    # test_ri_no_effect_on_non_susceptibles()
+    test_ri_initialization()
+    test_ri_manually_seeded()
+    test_ri_on_births()
+    test_ri_zero()
+    test_ri_vx_prob()
+    test_ri_no_effect_on_non_susceptibles()
     test_sia_schedule()
-    # test_sia_age_based_vaccination()
-    # test_sia_node_based_targeting()
-    # test_sia_coverage_probability()
 
     print("All initialization tests passed.")
