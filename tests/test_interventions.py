@@ -38,7 +38,6 @@ def test_ri_initialization():
     sim.run()
     assert hasattr(sim.people, "ri_timer")
     assert hasattr(sim.results, "ri_vaccinated")
-    assert hasattr(sim.results, "ri_protected")
 
 
 def test_ri_manually_seeded():
@@ -49,7 +48,6 @@ def test_ri_manually_seeded():
     sim.people.ri_timer[:n_vx] = np.random.randint(0, dur, n_vx)  # Set timers to trigger vaccination
     sim.run()
     assert sim.results.ri_vaccinated.sum() >= n_vx, "The number of vaccinations was lower than the number manually seeded."
-    assert sim.results.ri_protected.sum() >= n_vx, "The number of vaccinations was lower than the number manually seeded."
 
 
 def test_ri_on_births():
@@ -58,7 +56,6 @@ def test_ri_on_births():
     sim = setup_sim(dur=dur, cbr=cbr, vx_prob_ri=1.0)
     sim.run()
     assert np.sum(sim.results.ri_vaccinated) > 0, "No routine immunizations occurred on births."
-    assert np.sum(sim.results.ri_protected) > 0, "No routine immunizations occurred on births."
 
 
 def test_ri_zero():
@@ -72,9 +69,6 @@ def test_ri_zero():
     assert np.sum(sim_no_births.results.ri_vaccinated[(98 + 14) :]) == 0, (
         "No RI vaccinations should've occurred after initial cohort aged out of RI (oldest 98 days + time_step)."
     )
-    assert np.sum(sim_no_births.results.ri_protected[(98 + 14) :]) == 0, (
-        "No RI vaccinations should've occurred after initial cohort aged out of RI."
-    )
 
     # Zero routine immunization probability
     cbr = np.array([300, 250])
@@ -82,7 +76,6 @@ def test_ri_zero():
     sim_zero_ri_prob = setup_sim(dur=dur, cbr=cbr, vx_prob_ri=vx_prob_ri)
     sim_zero_ri_prob.run()
     assert np.sum(sim_zero_ri_prob.results.ri_vaccinated) == 0, "RI vaccinations occurred, but there should've been zero."
-    assert np.sum(sim_zero_ri_prob.results.ri_protected) == 0, "RI vaccinations occurred, but there should've been zero."
 
 
 def test_ri_vx_prob():
@@ -97,13 +90,10 @@ def test_ri_vx_prob():
 
     n_exp = n_vx * vx_prob_ri
     n_vx = np.sum(sim.results.ri_vaccinated)
-    n_protected = np.sum(sim.results.ri_protected)
     n_r = np.sum(sim.results.R[-1])
 
-    # print(f"Expected: {n_exp}, Vaccinated: {n_vx}, Protected: {n_protected}, Recovered: {n_r}")
-
     assert np.isclose(n_exp, n_vx, atol=10), "Vaccination rate does not match probability."
-    assert n_vx == n_protected == n_r, "Vaccinated, protected, and Recovered counts should be equal if vx efficacy is 100%"
+    assert n_vx == n_r, "Vaccinated and Recovered counts should be equal if vx efficacy is 100%"
 
 
 def test_ri_no_effect_on_non_susceptibles():
@@ -118,7 +108,6 @@ def test_ri_no_effect_on_non_susceptibles():
     sim.people.disease_state[10:15] = 3  # Recovered
     sim.run()
     assert np.sum(sim.results.ri_vaccinated) == np.sum(sim.results.R[-1]) == 20, "All individuals should've been vaccinated."
-    assert np.sum(sim.results.ri_protected) == 5, "Only the 5 susceptible individuals should've been protected."
 
 
 # --- SIA_ABM Tests ---

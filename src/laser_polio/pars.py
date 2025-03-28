@@ -46,6 +46,8 @@ default_pars = PropertySet(
         "life_expectancies": np.ones(5) * 65,  # example: 5 nodes
         "vx_efficacy": {
             "perfect": 1.0,
+            "bOPV": 0,
+            "f-IPV": 0,
             "IPV": 0,
             "IPV + bOPV": 0,
             "mOPV2": 0.7,

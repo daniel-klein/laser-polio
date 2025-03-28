@@ -1061,7 +1061,6 @@ def fast_ri(
     sim_t,
     vx_prob_ri,
     results_ri_vaccinated,
-    results_ri_protected,
     rand_vals,
     count,
 ):
@@ -1105,13 +1104,11 @@ def fast_ri(
                 if disease_state[i] == 0:  # If susceptible
                     # We don't check for vx_eff here, since that is already accounted for in the prob_vx file
                     disease_state[i] = 3  # Move to Recovered state
-                    local_protected[thread_id, node] += 1  # Increment protected count
 
     # Merge per-thread results
     for thread_id in range(num_threads):
         for j in range(num_nodes):
             results_ri_vaccinated[sim_t, j] += local_vaccinated[thread_id, j]
-            results_ri_protected[sim_t, j] += local_protected[thread_id, j]
 
 
 class RI_ABM:
@@ -1128,10 +1125,7 @@ class RI_ABM:
         self.people.ri_timer = dob + days_from_birth_to_ri
         sim.results.add_array_property(
             "ri_vaccinated", shape=(sim.nt, len(sim.nodes)), dtype=np.int32
-        )  # Track number of people vaccinated by RI
-        sim.results.add_array_property(
-            "ri_protected", shape=(sim.nt, len(sim.nodes)), dtype=np.int32
-        )  # Track number of people who enter Recovered state due to RI
+        )  # Track number of people vaccinated & protected by RI
         self.results = sim.results
 
     def step(self):
@@ -1152,7 +1146,6 @@ class RI_ABM:
             self.sim.t,
             vx_prob_ri,
             self.results.ri_vaccinated,
-            self.results.ri_protected,
             rand_vals,
             self.people.count,
         )
@@ -1164,26 +1157,14 @@ class RI_ABM:
         self.plot_cum_ri_vx(save=save, results_path=results_path)
 
     def plot_cum_ri_vx(self, save=False, results_path=None):
-        cum_ri_vaccinated = np.cumsum(self.results.ri_vaccinated, axis=0)
-        cum_ri_protected = np.cumsum(self.results.ri_protected, axis=0)
-
-        fig, axs = plt.subplots(1, 2, figsize=(15, 6))
-
         # Plot cumulative RI vaccinated
-        axs[0].plot(cum_ri_vaccinated)
-        axs[0].set_title("Cumulative RI Vaccinated")
-        axs[0].set_xlabel("Time (Timesteps)")
-        axs[0].set_ylabel("Cumulative Vaccinated")
-        axs[0].grid()
-
-        # Plot cumulative RI protected
-        axs[1].plot(cum_ri_protected)
-        axs[1].set_title("Cumulative Population Protected by RI")
-        axs[1].set_xlabel("Time (Timesteps)")
-        axs[1].set_ylabel("Cumulative Protected")
-        axs[1].grid()
-
-        plt.tight_layout()
+        cum_ri_vaccinated = np.cumsum(self.results.ri_vaccinated, axis=0)
+        plt.figure(figsize=(10, 6))
+        plt.plot(cum_ri_vaccinated)
+        plt.title("Cumulative RI Vaccinated")
+        plt.xlabel("Time")
+        plt.ylabel("Cumulative Vaccinated")
+        plt.grid()
         if save:
             plt.savefig(results_path / "cum_ri_vx.png")
         if not save:
@@ -1365,10 +1346,10 @@ class SIA_ABM:
         pass
 
     def plot(self, save=False, results_path=None):
-        self.plot_cum_sia_vaccinated(save=save, results_path=results_path)
+        self.plot_cum_vx_sia(save=save, results_path=results_path)
 
     def plot_cum_vx_sia(self, save=False, results_path=None):
-        cum_vx_sia = np.cumsum(self.results.vx_eff, axis=0)
+        cum_vx_sia = np.cumsum(self.results.sia_vaccinated, axis=0)
         plt.figure(figsize=(10, 6))
         plt.plot(cum_vx_sia)
         plt.title("Supplemental Immunization Activity (SIA) Vaccination")
