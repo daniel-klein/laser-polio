@@ -43,7 +43,7 @@ default_pars = PropertySet(
         "vx_prob_ri": None,
         "vx_strain_ri": "perfect",
         "sia_schedule": None,
-        "sia_eff": None,
+        "vx_prob_sia": None,
         "life_expectancies": np.ones(5) * 65,  # example: 5 nodes
         "vx_efficacy": {
             "perfect": 1.0,
