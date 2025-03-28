@@ -26,7 +26,8 @@ exclude .vscode/settings.json
 recursive-exclude data *
 recursive-exclude results *
 recursive-exclude scripts *
-recursive-exclude CALIB *
+recursive-exclude calib *
+recursive-exclude results *
 
 recursive-exclude .devcontainer *
 global-exclude *.py[cod] __pycache__/* *.so *.dylib
