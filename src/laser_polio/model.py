@@ -1218,12 +1218,7 @@ def fast_sia(
         # Skip if agent is not alive, not in targeted node, or not in age range
         if disease_states[i] < 0:
             continue
-        in_target_node = False
-        for n in nodes_to_vaccinate:
-            if node == n:
-                in_target_node = True
-                break
-        if not in_target_node:
+        if node not in nodes_to_vaccinate:
             continue
         age = sim_t - dobs[i]
         if not (min_age <= age <= max_age):
