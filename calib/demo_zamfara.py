@@ -100,46 +100,8 @@ assert (
     == len(beta_spatial)
 )
 
-
-class ConfigurablePropertySet(PropertySet):
-    def __init__(self, default_params: dict):
-        """
-        Initialize a ConfigurablePropertySet with default parameters.
-
-        :param default_params: The dictionary containing the default parameters.
-        """
-        super().__init__(default_params)  # Pass default params to base class
-
-    def override(self, override_params: dict):
-        """
-        Override default parameters with values from override_params.
-
-        :param override_params: The dictionary containing override parameters (loaded from disk).
-        :raises ValueError: If override_params contains unknown keys.
-        """
-        # Fix: Use to_dict() to retrieve keys from the PropertySet
-        unexpected_keys = set(override_params.keys()) - set(self.to_dict().keys())
-        if unexpected_keys:
-            raise ValueError(f"Unexpected parameters in override set: {unexpected_keys}")
-
-        # Apply overrides to the PropertySet
-        for key, value in override_params.items():
-            self[key] = value  # Assuming PropertySet supports item assignment
-
-    def save(self, filename: str = "params.pkl"):
-        """
-        Save the current property set to a pickle file.
-
-        :param filename: Path to the output pickle file.
-        """
-        with open(filename, "wb") as f:
-            pickle.dump(self.to_dict(), f)
-
-        print(f"Configuration saved to {filename}")
-
-
 # Set parameters
-pars = ConfigurablePropertySet(
+pars = PropertySet(
     {
         # Time
         "start_date": start_date,  # Start date of the simulation
@@ -172,14 +134,13 @@ pars = ConfigurablePropertySet(
         "vx_prob_ri": ri,  # Probability of routine vaccination
         "sia_schedule": sia_schedule,  # Schedule of SIAs
         "sia_eff": sia,  # Effectiveness of SIAs
-        "life_expectancies": np.ones(len(dot_names)) * 65,  # placeholder, should probably derive from age pyramid
     }
 )
 
 with Path("params.json").open("r") as par:
     params = json.load(par)
 
-pars.override(params)
+pars += params
 
 # Initialize the sim
 sim = lp.SEIR_ABM(pars)

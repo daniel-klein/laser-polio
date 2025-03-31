@@ -1207,6 +1207,8 @@ class SIA_ABM:
         # Check if there is an SIA event today
         for event in self.sia_schedule:
             if event["date"] == self.sim.datevec[t]:
+                if self.pars.vx_prob_sia is None:
+                    continue
                 nodes_to_vaccinate = np.array(event["nodes"], dtype=np.int32)  # Convert to NumPy array
                 vx_prob_sia = np.array(self.pars["vx_prob_sia"], dtype=np.float32)  # Convert to NumPy array
                 vaccinetype = event["vaccinetype"]
@@ -1215,7 +1217,6 @@ class SIA_ABM:
 
                 # Suppose we have num_people individuals
                 rand_vals = np.random.rand(self.people.count)  # this could be done clevererly
-
                 fast_sia(
                     self.people.node_id,
                     self.people.disease_state,

@@ -15,8 +15,8 @@ import laser_polio as lp
 
 model_script = Path(lp.root / "calib/demo_zamfara.py").resolve(strict=True)
 PARAMS_FILE = "params.json"
-RESULTS_FILE = lp.root / "results/calib_demo_zamfara/simulation_results.csv"
-ACTUAL_DATA_FILE = lp.root / "examples/demo_calib_zamfara/synthetic_infection_counts_zamfara_250.csv"
+RESULTS_FILE = lp.root / "calib/results/calib_demo_zamfara/simulation_results.csv"
+ACTUAL_DATA_FILE = lp.root / "examples/calib_demo_zamfara/synthetic_infection_counts_zamfara_250.csv"
 
 ######### END OF USER PARS ########
 ###################################
@@ -114,12 +114,6 @@ def objective(trial):
             # subprocess.run(["python3", "laser.py"], check=True)
             subprocess.run(get_native_runstring(), check=True)
 
-            print(f"Waiting for output file {RESULTS_FILE}")
-            # Wait until RESULTS_FILE is written
-            while not Path(RESULTS_FILE).exists():
-                print(os.listdir("."))
-                time.sleep(0.1)
-
             print("Reference...")
             actual = process_data(ACTUAL_DATA_FILE)
             print("Simulation...")
@@ -127,6 +121,7 @@ def objective(trial):
 
             score = compute_fit(actual, predicted)  # Evaluate results
             scores.append(score)
+        Path( RESULTS_FILE ).unlink()
 
         # Return the average score
         return np.mean(scores)
