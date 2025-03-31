@@ -1,4 +1,5 @@
 from .distributions import *  # noqa F403
+from .pars import *  # noqa F403
 from .model import *  # noqa F403
 from pathlib import Path
 
