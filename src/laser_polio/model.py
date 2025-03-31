@@ -1057,6 +1057,9 @@ class RI_ABM:
         self.results = sim.results
 
     def step(self):
+        if self.pars["vx_prob_ri"] is None:
+            return
+
         vx_prob_ri = self.pars["vx_prob_ri"]  # Includes coverage & efficacy
         num_nodes = len(self.sim.nodes)
         # Promote to 1D arrays if needed
