@@ -211,7 +211,6 @@ pars = ConfigurablePropertySet(
         "vx_prob_ri": ri,  # Probability of routine vaccination
         "sia_schedule": sia_schedule,  # Schedule of SIAs
         "vx_prob_sia": sia,  # Effectiveness of SIAs
-        "life_expectancies": np.ones(len(dot_names)) * 65,  # placeholder, should probably derive from age pyramid
     }
 )
 

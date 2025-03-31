@@ -43,7 +43,6 @@ default_pars = PropertySet(
         "vx_prob_ri": None,  # Should include coverage and efficacy from expected number of RI doses
         "sia_schedule": None,
         "vx_prob_sia": None,
-        "life_expectancies": np.ones(5) * 65,  # example: 5 nodes
         "vx_efficacy": {
             "perfect": 1.0,
             "bOPV": 0,

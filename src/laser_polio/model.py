@@ -849,6 +849,13 @@ class VitalDynamics_ABM:
             cumulative_deaths = lp.create_cumulative_deaths(np.sum(pars.n_ppl), max_age_years=100)
             sim.death_estimator = KaplanMeierEstimator(cumulative_deaths)
             lifespans = sim.death_estimator.predict_age_at_death(ages, max_year=100)
+            # Set pars.life_expectancies to mean lifespans by node.
+            # This is just to support placeholder mortality premodeling for EULAs.
+            # Would move this code block to EULA section but we've got lifespans here.
+            node_ids = sim.people.node_id[:sim.people.count]
+            unique_nodes, indices = np.unique(node_ids, return_inverse=True)
+            pars.life_expectancies = np.bincount(indices, weights=lifespans/365) / np.bincount(indices)
+            
             dods = lifespans - ages  # we could check that dods is non-negative to be safe
             sim.people.date_of_death[: np.sum(pars.n_ppl)] = dods
 
