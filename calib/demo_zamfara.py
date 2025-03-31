@@ -28,24 +28,24 @@ The model uses the same data and setup as the EMOD model, except in the followin
 regions = ["ZAMFARA"]
 start_year = 2019
 n_days = 365
-pop_scale = 1
+pop_scale = 1 / 10
 init_region = "ANKA"
 init_prev = 0.001
-results_path = "results/demo_zamfara"
+results_path = "results/calib_demo_zamfara"
 
 ######### END OF USER PARS ########
 ###################################
 
 
 # Find the dot_names matching the specified string(s)
-dot_names = lp.find_matching_dot_names(regions, "data/compiled_cbr_pop_ri_sia_underwt_africa.csv")
+dot_names = lp.find_matching_dot_names(regions, lp.root / "data/compiled_cbr_pop_ri_sia_underwt_africa.csv")
 
 # Load the shape names and centroids (sans geometry)
-centroids = pd.read_csv("data/shp_names_africa_adm2.csv")
+centroids = pd.read_csv(lp.root / "data/shp_names_africa_adm2.csv")
 centroids = centroids.set_index("dot_name").loc[dot_names]
 
 # Initial immunity
-init_immun = pd.read_hdf("data/init_immunity_0.5coverage_january.h5", key="immunity")
+init_immun = pd.read_hdf(lp.root / "data/init_immunity_0.5coverage_january.h5", key="immunity")
 init_immun = init_immun.set_index("dot_name").loc[dot_names]
 init_immun = init_immun[init_immun["period"] == start_year]
 
@@ -60,22 +60,22 @@ init_prevs[prev_indices] = init_prev
 
 # Distance matrix
 # TODO make sure this is the same order as the dot_names
-dist_matrix = lp.get_distance_matrix("data/distance_matrix_africa_adm2.h5", dot_names)  # Load distances matrix (km)
+dist_matrix = lp.get_distance_matrix(lp.root / "data/distance_matrix_africa_adm2.h5", dot_names)  # Load distances matrix (km)
 
 # SIA schedule
 start_date = lp.date(f"{start_year}-01-01")
-historic_sia_schedule = pd.read_csv("data/sia_historic_schedule.csv")
-future_sia_schedule = pd.read_csv("data/sia_scenario_1.csv")
+historic_sia_schedule = pd.read_csv(lp.root / "data/sia_historic_schedule.csv")
+future_sia_schedule = pd.read_csv(lp.root / "data/sia_scenario_1.csv")
 sia_schedule_raw = pd.concat([historic_sia_schedule, future_sia_schedule], ignore_index=True)  # combine the two schedules
 sia_schedule = lp.process_sia_schedule_polio(sia_schedule_raw, dot_names, start_date)  # Load sia schedule
 
 ### Load the demographic, coverage, and risk data
 # Age pyramid
-age = pd.read_csv("data/age_africa.csv")
+age = pd.read_csv(lp.root / "data/age_africa.csv")
 age = age[(age["ADM0_NAME"] == "NIGERIA") & (age["Year"] == start_year)]
 prop_u5 = age.loc[age["age_group"] == "0-4", "population"].values[0] / age["population"].sum()
 # Compiled data
-df_comp = pd.read_csv("data/compiled_cbr_pop_ri_sia_underwt_africa.csv")
+df_comp = pd.read_csv(lp.root / "data/compiled_cbr_pop_ri_sia_underwt_africa.csv")
 df_comp = df_comp[df_comp["year"] == start_year]
 # Population data
 pop_u5 = df_comp.set_index("dot_name").loc[dot_names, "pop_u5"].values  # Extract the pop data in the same order as the dot_names
@@ -146,7 +146,7 @@ pars = ConfigurablePropertySet(
         "dur": n_days,  # Number of timesteps
         # Population
         "n_ppl": pop,  # np.array([30000, 10000, 15000, 20000, 25000]),
-        "age_pyramid_path": "data/Nigeria_age_pyramid_2024.csv",  # From https://www.populationpyramid.net/nigeria/2024/
+        "age_pyramid_path": lp.root / "data/Nigeria_age_pyramid_2024.csv",  # From https://www.populationpyramid.net/nigeria/2024/
         "cbr": cbr,  # np.array([37, 41, 30, 25, 33]),  # Crude birth rate per 1000 per year
         # Disease
         "init_immun": init_immun,  # Initial immunity per node
@@ -213,7 +213,7 @@ def save_results_to_csv(results, filename="simulation_results.csv"):
 
 
 # Example usage
-save_results_to_csv(sim.results)
+save_results_to_csv(sim.results, filename=results_path + "/simulation_results.csv")
 
 # Plot results
 sim.plot(save=True, results_path=results_path)
