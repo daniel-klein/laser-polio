@@ -1,7 +1,4 @@
 # Priorities
-- Check the RI & SIA figures - they're plotting strange results
-- Merge my interventions branch
-
 - Try running calibration by myself - see the docs
 
 - Curate SIA data from Hil: Kurt_sharing\step04b_sia_randeffect\20241220_regression
@@ -10,7 +7,7 @@
 - Remember to move RE processing out of sim and into data curation
 
 - Curate R0 file from Hil: Kurt_sharing\step04b_sia_randeffect\20241220_regression
-- Try scaling R0. E.g. per convo with HL & KF: R0_i = exp{m * (b_i - mean(b))/sd(b) + log R0), so the random effect b_i is standardized to mean zero and std dev = 1, then rescaled with m and centered. For example if you thought that R0 is usually centered at 10 but ranges from 5 to 20, then you would pick m to scale within those bounds.
+- Try scaling R0. E.g. per convo with HL & KF: R0_i = exp(m * (b_i - mean(b))/sd(b) + log R0), so the random effect b_i is standardized to mean zero and std dev = 1, then rescaled with m and centered. For example if you thought that R0 is usually centered at 10 but ranges from 5 to 20, then you would pick m to scale within those bounds.
 - Check transmission probability with real data. Why do we need R0 so high!?
 - Test full models with real data
 - Drop ABM term from components
