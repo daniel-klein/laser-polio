@@ -1,3 +1,6 @@
+import csv
+import json
+
 import numpy as np
 import pandas as pd
 import sciris as sc
@@ -105,8 +108,7 @@ pars = PropertySet(
         "dur": n_days,  # Number of timesteps
         # Population
         "n_ppl": pop,  # np.array([30000, 10000, 15000, 20000, 25000]),
-        "age_pyramid_path": "data/Nigeria_age_pyramid_2024.csv",  # From https://www.populationpyramid.net/nigeria/2024/
-        "cbr": cbr,  # np.array([37, 41, 30, 25, 33]),  # Crude birth rate per 1000 per year
+        "age_pyramid_path": "data/Nigeria_age_pyramid_2024.csv",  # From https://www.populationpyramid.net/nigeria/2024/ "cbr": cbr,  # np.array([37, 41, 30, 25, 33]),  # Crude birth rate per 1000 per year
         # Disease
         "init_immun": init_immun,  # Initial immunity per node
         "init_prev": init_prevs,  # Initial prevalence per node (1% infected)
@@ -134,8 +136,8 @@ pars = PropertySet(
     }
 )
 
-with open( "params.json" as params_fp ):
-    params = json.load( params_fp )
+with open("params.json") as params_fp:
+    params = json.load(params_fp)
 
 pars += params
 
@@ -145,6 +147,7 @@ sim.components = [lp.VitalDynamics_ABM, lp.DiseaseState_ABM, lp.Transmission_ABM
 
 # Run the simulation
 sim.run()
+
 
 def save_results_to_csv(results, filename="simulation_results.csv"):
     """
@@ -168,8 +171,10 @@ def save_results_to_csv(results, filename="simulation_results.csv"):
 
     print(f"Results saved to {filename}")
 
+
 # Turn this on (and plotting off) for calibration.
 save_results_to_csv(sim.results)
+
 
 def save_results_to_csv(results, filename="simulation_results.csv"):
     """
