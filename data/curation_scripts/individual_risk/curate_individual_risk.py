@@ -14,13 +14,13 @@ Image.MAX_IMAGE_PIXELS = None
 
 # Define inputs
 raster_path = "data/curation_scripts/individual_risk/IHME_CGF_UNDERWEIGHT_2019_MEAN.tif"
-shp_path = "data/curation_scripts/shp/shp_africa_adm2.shp"
+shp_path = "data/shp_africa_low_res.gpkg"
 output_file = "data/curation_scripts/individual_risk/underwt_u5_2019.csv"
 
 # Check if shp file exists
 if not os.path.exists(shp_path):
     print(f"Shapefile not found at {shp_path}. Loading geojson file and saving as shapefile.")
-    shp = gpd.read_file("data/shp_africa_adm2.geojson")
+    shp = gpd.read_file("data/shp_africa_low_res.gpkg", layer="adm2")
     # Save as a shapefile
     shp.to_file(shp_path)
 
@@ -45,7 +45,7 @@ df["prop_underwt"] = df["prop_underwt"] / 100
 ###  Validate the output
 
 # Check that the shp and df are the same len
-shp = gpd.read_file("data/shp_africa_adm2.geojson")
+shp = gpd.read_file("data/shp_africa_low_res.gpkg", layer="adm2")
 assert len(shp) == len(df), "The number of rows in the output does not match the number of shapes in the shapefile."
 
 # Fill in missing values with the mean from the next higher admin level

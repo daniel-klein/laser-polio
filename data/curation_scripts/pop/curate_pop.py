@@ -12,6 +12,7 @@ See the README.md file for more information on how to generate the pop files.
 
 # Load the raw data
 pop = pd.read_csv("data/curation_scripts/pop/dpt_district_summaries.csv")
+pop.columns = pop.columns.str.lower()
 
 # Clean the specified columns
 columns_to_clean = ["adm0_name", "adm1_name", "adm2_name"]
@@ -33,21 +34,23 @@ print(pop.head())
 
 # Check for dot_name and year combination duplicates
 if len(pop) != len(pop[["dot_name", "year"]].drop_duplicates()):
-    print("The dot_name and year combinations are not unique.")
+    print("Before manual curation, the dot_name and year combinations are not unique.")
     # Print the rows with duplicates
     duplicates = pop[pop.duplicated(subset=["dot_name", "year"], keep=False)]
     print(duplicates)
 
 # Manually update dot_name for duplicates
-pop.loc[pop["GUID"] == "{90211E77-0803-4728-B6CB-2F194DB4C21E}", "dot_name"] = "AFRO:GUINEA_BISSAU:BAFATA:BAMBADINCA2"
-pop.loc[pop["GUID"] == "{90211E77-0803-4728-B6CB-2F194DB4C21E}", "adm2_name"] = "BAMBADINCA2"
+pop.loc[pop["guid"] == "{90211E77-0803-4728-B6CB-2F194DB4C21E}", "dot_name"] = "AFRO:GUINEA_BISSAU:BAFATA:BAMBADINCA2"
+pop.loc[pop["guid"] == "{90211E77-0803-4728-B6CB-2F194DB4C21E}", "adm2_name"] = "BAMBADINCA2"
 
 # Check again for dot_name and year combination duplicates
 if len(pop) != len(pop[["dot_name", "year"]].drop_duplicates()):
-    print("The dot_name and year combinations are not unique.")
+    print("After manual curation, the dot_name and year combinations are not unique.")
     # Print the rows with duplicates
     duplicates = pop[pop.duplicated(subset=["dot_name", "year"], keep=False)]
     print(duplicates)
+else:
+    print("After manual curation, the dot_name and year combinations are unique.")
 
 # Test that all values in pop.who_region are not NaN or NA
 assert not pop["who_region"].isna().any(), "There are NaN values in the who_region column"
