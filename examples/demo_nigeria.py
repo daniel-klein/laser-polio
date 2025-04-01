@@ -67,7 +67,7 @@ sia_schedule = lp.process_sia_schedule_polio(sia_schedule_raw, dot_names, start_
 ### Load the demographic, coverage, and risk data
 # Age pyramid
 age = pd.read_csv("data/age_africa.csv")
-age = age[(age["ADM0_NAME"] == "NIGERIA") & (age["Year"] == start_year)]
+age = age[(age["adm0_name"] == "NIGERIA") & (age["Year"] == start_year)]
 prop_u5 = age.loc[age["age_group"] == "0-4", "population"].values[0] / age["population"].sum()
 # Compiled data
 df_comp = pd.read_csv("data/compiled_cbr_pop_ri_sia_underwt_africa.csv")

@@ -10,7 +10,7 @@ cbr = cbr[["Location", "ISO_3_CODE", "year", "cbr"]]
 print(cbr.head())
 
 # Load the adm0 shapes file
-shp = gpd.read_file("data/shp_africa_adm0.geojson")
+shp = gpd.read_file("data/shp_africa_low_res.gpkg", layer="adm0")
 
 # Merge the cbr DataFrame with the shp GeoDataFrame on the ISO3_code column
 merged = shp.merge(cbr, left_on="ISO_3_CODE", right_on="ISO_3_CODE", how="left")
@@ -22,7 +22,7 @@ dpt = pd.read_csv("data/curation_scripts/pop/dpt_district_summaries_curated.csv"
 merged = merged[merged["year"].isin(dpt["year"])]
 
 # Filter to columns of interest
-merged = merged[["ADM0_NAME", "year", "cbr"]]
+merged = merged[["adm0_name", "year", "cbr"]]
 print(merged.head())
 
 # Save the dataset

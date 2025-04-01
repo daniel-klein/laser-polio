@@ -9,13 +9,13 @@ age = pd.read_excel(age_path, sheet_name="Estimates", skiprows=16, skipfooter=16
 age.rename(columns={"ISO3 Alpha-code": "ISO_3_CODE"}, inplace=True)
 
 ### Curate the spatial data
-# Add in WHO_REGION column based on matches to the shapes file
-shp = gpd.read_file("data/shp_africa_adm0.geojson")
-shp = shp[["WHO_REGION", "ADM0_NAME", "ISO_3_CODE"]]
-# Filter the age DataFrame based on the Location column having a match in the shp ADM0_NAME column
+# Add in who_region column based on matches to the shapes file
+shp = gpd.read_file("data/shp_africa_low_res.gpkg", layer="adm0")
+shp = shp[["who_region", "adm0_name", "ISO_3_CODE"]]
+# Filter the age DataFrame based on the Location column having a match in the shp adm0_name column
 age = age[age["ISO_3_CODE"].isin(shp["ISO_3_CODE"])]
-# Merge the age DataFrame with the shp GeoDataFrame on the ADM0_NAME column
-age = age.merge(shp[["ISO_3_CODE", "ADM0_NAME"]], on="ISO_3_CODE", how="left")
+# Merge the age DataFrame with the shp GeoDataFrame on the adm0_name column
+age = age.merge(shp[["ISO_3_CODE", "adm0_name"]], on="ISO_3_CODE", how="left")
 
 ### Curate the year data
 # Filter the years based on years included in the pop file
@@ -30,7 +30,7 @@ age = age[age["Year"].between(year_min, year_max)]
 # Select the ISO3 Alpha-code, Year, and the age groups columns
 age = age[
     [
-        "ADM0_NAME",
+        "adm0_name",
         "ISO_3_CODE",
         "Year",
         "0-4",
@@ -57,7 +57,7 @@ age = age[
     ]
 ]
 # Stack the age groups columns
-age = age.melt(id_vars=["ADM0_NAME", "ISO_3_CODE", "Year"], var_name="age_group", value_name="population")
+age = age.melt(id_vars=["adm0_name", "ISO_3_CODE", "Year"], var_name="age_group", value_name="population")
 age = age.reset_index(drop=True)
 print(age.head())
 
