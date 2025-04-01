@@ -175,33 +175,6 @@ def save_results_to_csv(results, filename="simulation_results.csv"):
 # Turn this on (and plotting off) for calibration.
 save_results_to_csv(sim.results)
 
-
-def save_results_to_csv(results, filename="simulation_results.csv"):
-    """
-    Save simulation results (S, E, I, R) to a CSV file with columns: Time, Node, S, E, I, R.
-
-    :param results: The results object containing numpy arrays for S, E, I, and R.
-    :param filename: The name of the CSV file to save.
-    """
-    timesteps, nodes = results.S.shape  # Get the number of timesteps and nodes
-
-    with open(filename, mode="w", newline="") as file:
-        writer = csv.writer(file)
-
-        # Write header
-        writer.writerow(["Time", "Node", "S", "E", "I", "R"])
-
-        # Write data
-        for t in range(timesteps):
-            for n in range(nodes):
-                writer.writerow([t, n, results.S[t, n], results.E[t, n], results.I[t, n], results.R[t, n]])
-
-    print(f"Results saved to {filename}")
-
-
-# Example usage
-save_results_to_csv(sim.results)
-
 # Plot results
 # sim.plot(save=True, results_path=results_path)
 
