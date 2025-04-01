@@ -31,7 +31,7 @@ n_days = 365
 pop_scale = 1 / 10
 init_region = "ANKA"
 init_prev = 0.001
-results_path = "results/calib_demo_zamfara"
+results_path = "calib/results/calib_demo_zamfara"
 
 ######### END OF USER PARS ########
 ###################################
@@ -174,6 +174,7 @@ def save_results_to_csv(results, filename="simulation_results.csv"):
 
 
 # Example usage
+Path(results_path).mkdir(parents=True, exist_ok=True)
 save_results_to_csv(sim.results, filename=results_path + "/simulation_results.csv")
 
 # Plot results
