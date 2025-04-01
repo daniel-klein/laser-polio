@@ -1,8 +1,6 @@
 import json
-import os
 import subprocess
 import sys
-import time
 from pathlib import Path
 
 import numpy as np
@@ -121,7 +119,7 @@ def objective(trial):
 
             score = compute_fit(actual, predicted)  # Evaluate results
             scores.append(score)
-        Path( RESULTS_FILE ).unlink()
+        Path(RESULTS_FILE).unlink()
 
         # Return the average score
         return np.mean(scores)

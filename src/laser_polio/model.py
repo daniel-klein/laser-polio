@@ -852,10 +852,10 @@ class VitalDynamics_ABM:
             # Set pars.life_expectancies to mean lifespans by node.
             # This is just to support placeholder mortality premodeling for EULAs.
             # Would move this code block to EULA section but we've got lifespans here.
-            node_ids = sim.people.node_id[:sim.people.count]
+            node_ids = sim.people.node_id[: sim.people.count]
             unique_nodes, indices = np.unique(node_ids, return_inverse=True)
-            pars.life_expectancies = np.bincount(indices, weights=lifespans/365) / np.bincount(indices)
-            
+            pars.life_expectancies = np.bincount(indices, weights=lifespans / 365) / np.bincount(indices)
+
             dods = lifespans - ages  # we could check that dods is non-negative to be safe
             sim.people.date_of_death[: np.sum(pars.n_ppl)] = dods
 
