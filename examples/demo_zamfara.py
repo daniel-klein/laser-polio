@@ -83,8 +83,24 @@ pop = pop_u5 / prop_u5  # Estimate the total population size since the data is o
 pop = pop * pop_scale  # Scale population
 cbr = df_comp.set_index("dot_name").loc[dot_names, "cbr"].values  # CBR data
 ri = df_comp.set_index("dot_name").loc[dot_names, "ri_eff"].values  # RI data
-sia = df_comp.set_index("dot_name").loc[dot_names, "sia_prob"].values  # SIA data
-beta_spatial = df_comp.set_index("dot_name").loc[dot_names, "underwt_prop"].values  # Underweight data
+sia = df_comp.set_index("dot_name").loc[dot_names, "sia_random_effect"].values  # SIA data
+reff_re = df_comp.set_index("dot_name").loc[dot_names, "reff_random_effect"].values  # Underweight data
+
+
+# HOT FIX
+# TODO: fix this up later!
+# Process the Reff random effects
+R0 = 14
+m = 0.15
+# R0_i = np.exp(m * (b_i - mean(b))/sd(b) + log R0)
+r0_spatial = np.exp(m * (reff_re - np.mean(reff_re)) / np.std(reff_re) + np.log(R0))
+mean_r0_spatial = np.mean(r0_spatial)
+min_r0_spatial = np.min(r0_spatial)
+max_r0_spatial = np.max(r0_spatial)
+print(f"Reff mean: {mean_r0_spatial}, min = {min_r0_spatial}, max = {max_r0_spatial}")
+beta_spatial = r0_spatial / R0
+# R0_i = np.exp(m * (b_i - mean(b))/sd(b) + log R0)
+
 
 # Assert that all data arrays have the same length
 assert (

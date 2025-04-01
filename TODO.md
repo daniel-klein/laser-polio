@@ -1,5 +1,5 @@
 # Priorities
-- Try scaling R0 & SIA random effects. E.g. per convo with HL & KF: R0_i = exp(m * (b_i - mean(b))/sd(b) + log R0), so the random effect b_i is standardized to mean zero and std dev = 1, then rescaled with m and centered. For example if you thought that R0 is usually centered at 10 but ranges from 5 to 20, then you would pick m to scale within those bounds.
+- Try scaling R0 & SIA random effects. E.g. per convo with HL & KF
 - Change terminology from SIA efficacy to SIA coverage spatial heterogeneity
 - Need to use the immunity_ri_nOPV2 column and use that as including efficacy
 - Remember to move RE processing out of sim and into data curation
@@ -8,7 +8,7 @@
 - Drop ABM term from components
 - Export pars as pkl
 - Rename variables to distinguish between exposure and infection
-- Enable vx transmission
+- Enable vx transmission (& add genome R0 multiplier, Sabin = 1/4; nOPV2 = 1/8)
 - Set a random number seed
 - Use KM's gravity model scaling approach
 - Update the birth and death plot to summarize by country.
