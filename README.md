@@ -38,9 +38,9 @@ The contents of the other folders is as follows:
 | Variable | Dataset | Usage |
 |----------|---------|-------|
 | n_ppl | WorldPop <5 estimates for Africa at adm2 | Used to estimate node population size. We scale this up by the u5 faction to estimate all age population size. |
-| age_pyramid_path | Age distribution for Nigeria | Used to estimate node ages |
-| cbr | Crude birth rate by adm0 and year | Used to estimate number of births by node node |
-| init_immun | Estimate fraction immune to type 2 by age, year, and adm2 | Used to initialize the fraction immune/recovered by node|
+| age_pyramid_path | Age distribution for Nigeria | Used to estimate ages by node |
+| cbr | Crude birth rate by adm0 and year | Used to estimate number of births by node |
+| init_immun | Estimate fraction immune to type 2 by age, year, and adm2 | Used to initialize the fraction immune/recovered |
 | init_prev | Proportion of individuals infected by node | Used to initialize the number of infection by node. Supercedes recovery (e.g, can get infections even with 100% init_immun) |
 | beta_spatial | R_eff random effect from regression model | Node-specific scalar on R0. |
 | distances | Matrix of distances in km between nodes | Used in gravity model |
