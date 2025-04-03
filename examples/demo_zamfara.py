@@ -98,7 +98,7 @@ mean_r0_spatial = np.mean(r0_spatial)
 min_r0_spatial = np.min(r0_spatial)
 max_r0_spatial = np.max(r0_spatial)
 print(f"Reff mean: {mean_r0_spatial}, min = {min_r0_spatial}, max = {max_r0_spatial}")
-beta_spatial = r0_spatial / R0
+r0_scalars = r0_spatial / R0
 # R0_i = np.exp(m * (b_i - mean(b))/sd(b) + log R0)
 
 
@@ -113,7 +113,7 @@ assert (
     == len(cbr)
     == len(ri)
     == len(sia)
-    == len(beta_spatial)
+    == len(r0_scalars)
 )
 
 # Set parameters
@@ -131,7 +131,7 @@ pars = PropertySet(
         "r0": r0,  # Basic reproduction number
         "risk_mult_var": 4.0,  # Lognormal variance for the individual-level risk multiplier (risk of acquisition multiplier; mean = 1.0)
         "corr_risk_inf": 0.8,  # Correlation between individual risk multiplier and individual infectivity (daily infectivity, mean = 14/24)
-        "beta_spatial": beta_spatial,  # Spatial transmission scalar (multiplied by global rate)
+        "r0_scalars": r0_scalars,  # Spatial transmission scalar (multiplied by global rate)
         "seasonal_factor": 0.125,  # Seasonal variation in transmission
         "seasonal_phase": 180,  # Phase of seasonal variation
         "p_paralysis": 1 / 2000,  # Probability of paralysis

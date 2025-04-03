@@ -1,8 +1,9 @@
 # Priorities
-- Plot out Kurt's & out R0 scalars on map
 - Try scaling SIA random effects. E.g. per convo with HL & KF
 - Change terminology from SIA efficacy to SIA coverage spatial heterogeneity
 - Need to use the immunity_ri_nOPV2 column and use that as including efficacy
+- Add underwt fraction back in???
+- Move translation of r0_scalars to pre-calib
 - Remember to move RE processing out of sim and into data curation
 - Check transmission probability with real data. Why do we need R0 so high!?
 - Test full models with real data

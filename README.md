@@ -42,7 +42,7 @@ The contents of the other folders is as follows:
 | cbr | Crude birth rate by adm0 and year | Used to estimate number of births by node |
 | init_immun | Estimate fraction immune to type 2 by age, year, and adm2 | Used to initialize the fraction immune/recovered |
 | init_prev | Proportion of individuals infected by node | Used to initialize the number of infection by node. Supercedes recovery (e.g, can get infections even with 100% init_immun) |
-| beta_spatial | R_eff random effect from regression model | Node-specific scalar on R0. |
+| r0_scalars | R_eff random effect from regression model | Node-specific scalar on R0. |
 | distances | Matrix of distances in km between nodes | Used in gravity model |
 | centroids | Lat and lon of nodes | Used in plotting. TODO: replace with low res polygons |
 | vx_prob_ri | Estimate of RI vaccination rate from IHME DPT estimates (accounts for # of doses) | Determines the probability an individual gets vaccinated in RI at age ??? |

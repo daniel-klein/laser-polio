@@ -83,7 +83,7 @@ pop = pop * pop_scale  # Scale population
 cbr = df_comp.set_index("dot_name").loc[dot_names, "cbr"].values  # CBR data
 ri = df_comp.set_index("dot_name").loc[dot_names, "ri_eff"].values  # RI data
 sia = df_comp.set_index("dot_name").loc[dot_names, "sia_prob"].values  # SIA data
-beta_spatial = df_comp.set_index("dot_name").loc[dot_names, "underwt_prop"].values  # Underweight data
+r0_scalars = df_comp.set_index("dot_name").loc[dot_names, "underwt_prop"].values  # Underweight data
 
 # Assert that all data arrays have the same length
 assert (
@@ -96,7 +96,7 @@ assert (
     == len(cbr)
     == len(ri)
     == len(sia)
-    == len(beta_spatial)
+    == len(r0_scalars)
 )
 
 # Set parameters
@@ -115,7 +115,7 @@ pars = PropertySet(
         "r0": 14,  # Basic reproduction number
         "risk_mult_var": 4.0,  # Lognormal variance for the individual-level risk multiplier (risk of acquisition multiplier; mean = 1.0)
         "corr_risk_inf": 0.8,  # Correlation between individual risk multiplier and individual infectivity (daily infectivity, mean = 14/24)
-        "beta_spatial": beta_spatial,  # Spatial transmission scalar (multiplied by global rate)
+        "r0_scalars": r0_scalars,  # Spatial transmission scalar (multiplied by global rate)
         "seasonal_factor": 0.125,  # Seasonal variation in transmission
         "seasonal_phase": 180,  # Phase of seasonal variation
         "p_paralysis": 1 / 2000,  # Probability of paralysis
