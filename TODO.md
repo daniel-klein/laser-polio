@@ -17,6 +17,8 @@
 - Calibration
 - Save results & specify frequency
 - Reactive SIAs
+- Check out the optuna sampler options: https://optuna.readthedocs.io/en/stable/reference/samplers/index.html. What did Starsim use? 
+- Re-org the data folder to have timestamped files? Or time-stamped folders? 
 
 # Refinement
 - Switch to radiation model (easier to explain cuz the numbers are %within vs %without)
