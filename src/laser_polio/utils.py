@@ -7,6 +7,7 @@ import pandas as pd
 
 __all__ = [
     "calc_r0_scalars_from_rand_eff",
+    "calc_sia_prob_from_rand_eff",
     "clean_strings",
     "create_cumulative_deaths",
     "date",
@@ -38,6 +39,13 @@ def calc_r0_scalars_from_rand_eff(rand_eff=None, R0=14, R_min=3.41, R_max=16.7, 
         R_c + (R_M - R_c) * np.maximum(w - 0.5, 0) * 2 + (R_c - R_m) * np.minimum(w - 0.5, 0) * 2
     )  # Rescale the random effects to the R0 bounds
     return reff_scalars
+
+
+def calc_sia_prob_from_rand_eff(sia_re, center=0.5, scale=0.8):
+    """Convert SIA random effects to probabilities."""
+    vals_rescaled = scale * sia_re + np.log(center / (1 - center))  # Center & scale the random effects (source = Hil???)
+    sia_probs = inv_logit(vals_rescaled)  # Convert to probabilities
+    return sia_probs
 
 
 def clean_strings(revval):

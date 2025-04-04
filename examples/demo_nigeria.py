@@ -79,7 +79,7 @@ pop = pop * pop_scale  # Scale population
 cbr = df_comp.set_index("dot_name").loc[dot_names, "cbr"].values  # CBR data
 ri = df_comp.set_index("dot_name").loc[dot_names, "ri_eff"].values  # RI data
 sia_re = df_comp.set_index("dot_name").loc[dot_names, "sia_random_effect"].values  # SIA data
-sia = sia_re  # TODO, curate this data!!!
+sia_prob = lp.calc_sia_prob_from_rand_eff(sia_re, center=0.7, scale=2.4)  # Secret sauce numbers from Hil
 reff_re = df_comp.set_index("dot_name").loc[dot_names, "reff_random_effect"].values  # random effects from regression model
 r0_scalars = lp.calc_r0_scalars_from_rand_eff(reff_re)  # Center and scale the random effects
 
@@ -94,7 +94,7 @@ assert (
     == len(pop)
     == len(cbr)
     == len(ri)
-    == len(sia)
+    == len(sia_prob)
     == len(r0_scalars)
 )
 
@@ -131,7 +131,7 @@ pars = PropertySet(
         # Interventions
         "vx_prob_ri": ri,  # Probability of routine vaccination
         "sia_schedule": sia_schedule,  # Schedule of SIAs
-        "vx_prob_sia": sia,  # Effectiveness of SIAs
+        "vx_prob_sia": sia_prob,  # SIA vaccination probability
     }
 )
 

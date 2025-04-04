@@ -1,6 +1,18 @@
 # Priorities
-- Try scaling SIA random effects. E.g. per convo with HL & KF
 - Change terminology from SIA efficacy to SIA coverage spatial heterogeneity
+- ping Arie & hil about Reff REs in N Nigeria
+Objectives:
+Total cases
+Cases by year -> month
+Cases in N vs S Nigeria
+Levers: 
+R0
+R0 scalar for N Nigeria
+Gravity model coefficient (k)
+Seasonality pars
+Stretch: risk_mult_var or corr_risk_inf
+
+
 - Need to use the immunity_ri_nOPV2 column and use that as including efficacy
 - Add underwt fraction back in???
 - Move translation of r0_scalars to pre-calib
@@ -20,6 +32,7 @@
 - Reactive SIAs
 - Check out the optuna sampler options: https://optuna.readthedocs.io/en/stable/reference/samplers/index.html. What did Starsim use? 
 - Re-org the data folder to have timestamped files? Or time-stamped folders? 
+- Check that the SIA schedule dot_names are in my shapes
 
 # Refinement
 - Switch to radiation model (easier to explain cuz the numbers are %within vs %without)
