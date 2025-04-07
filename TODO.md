@@ -1,7 +1,8 @@
 # Priorities
 
 SIA/RI DATA
-- Need to use the immunity_ri_nOPV2 column and use that as including efficacy
+- Switch demo_zamfara and demo_sweep over to new curation functions
+- Update README
 
 DEBUGGING 
 - Plot expected births?
@@ -27,10 +28,12 @@ CALIBRATION
     - Stretch: risk_mult_var or corr_risk_inf
 
 NEW FEATURES
+- Add scalar for N Nigeria
 - Enable vx transmission (& add genome R0 multiplier, Sabin = 1/4; nOPV2 = 1/8)
 - Set a random number seed
 - Save results & specify frequency
 - Reactive SIAs
+- Add chronically missed pop. Maybe use a individual prob of participating in SIA? 
 
 
 # Refinement
