@@ -19,7 +19,7 @@ CALIBRATION
     - Total cases
     - Cases by year -> month
     - Cases in N vs S Nigeria
-- Levers: 
+- Levers:
     - R0
     - R0 scalar for N Nigeria
     - Gravity model coefficient (k)
@@ -32,15 +32,15 @@ NEW FEATURES
 - Set a random number seed
 - Save results & specify frequency
 - Reactive SIAs
-- Add chronically missed pop. Maybe use a individual prob of participating in SIA? 
+- Add chronically missed pop. Maybe use a individual prob of participating in SIA?
 
 
 # Refinement
 - Use KM's gravity model scaling approach
 - Export pars as pkl
 - Add underwt fraction back in???
-- Check out the optuna sampler options: https://optuna.readthedocs.io/en/stable/reference/samplers/index.html. What did Starsim use? 
-- Re-org the data folder to have timestamped files? Or time-stamped folders? 
+- Check out the optuna sampler options: https://optuna.readthedocs.io/en/stable/reference/samplers/index.html. What did Starsim use?
+- Re-org the data folder to have timestamped files? Or time-stamped folders?
 - Check that the SIA schedule dot_names are in my shapes
 - Switch to radiation model (easier to explain cuz the numbers are %within vs %without)
 - Count number of Sabin2 or nOPV2 transmissions

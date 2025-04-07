@@ -2,7 +2,7 @@
 This folder contains curated datasets in root, plus the raw data and curation scripts in the subfolders.
 
 # Data sources
-The shapefiles & population data are sourced Dropbox/Kurt_sharing. 
+The shapefiles & population data are sourced Dropbox/Kurt_sharing.
 
 | Dataset | Source | Basis | Status |
 |---------|---------|--------|---|
