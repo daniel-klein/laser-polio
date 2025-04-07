@@ -1,3 +1,4 @@
+import csv
 import datetime as dt
 import os
 from zoneinfo import ZoneInfo  # Python 3.9+
@@ -19,6 +20,7 @@ __all__ = [
     "get_woy",
     "inv_logit",
     "process_sia_schedule_polio",
+    "save_results_to_csv",
 ]
 
 
@@ -353,6 +355,29 @@ def get_woy(sim):
 def get_seasonality(sim):
     woy = get_woy(sim)
     return 1 + sim.pars["seasonal_factor"] * np.cos((2 * np.pi * woy / 52) + sim.pars["seasonal_phase"])
+
+
+def save_results_to_csv(results, filename="simulation_results.csv"):
+    """
+    Save simulation results (S, E, I, R) to a CSV file with columns: Time, Node, S, E, I, R.
+
+    :param results: The results object containing numpy arrays for S, E, I, and R.
+    :param filename: The name of the CSV file to save.
+    """
+    timesteps, nodes = results.S.shape  # Get the number of timesteps and nodes
+
+    with open(filename, mode="w", newline="") as file:
+        writer = csv.writer(file)
+
+        # Write header
+        writer.writerow(["Time", "Node", "S", "E", "I", "R"])
+
+        # Write data
+        for t in range(timesteps):
+            for n in range(nodes):
+                writer.writerow([t, n, results.S[t, n], results.E[t, n], results.I[t, n], results.R[t, n]])
+
+    print(f"Results saved to {filename}")
 
 
 def create_cumulative_deaths(total_population, max_age_years):

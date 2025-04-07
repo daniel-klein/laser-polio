@@ -36,8 +36,8 @@ default_pars = PropertySet(
         "gravity_c": 2.0,  # Distance exponent
         "max_migr_frac": 0.01,  # Fraction of population that migrates
         "centroids": {
-            "CENTER_LAT": np.array([0, 0]),
-            "CENTER_LON": np.array([0, 1]),
+            "center_lat": np.array([0, 0]),
+            "center_lon": np.array([0, 1]),
         },
         # Interventions
         "vx_prob_ri": None,  # Should include coverage and efficacy from expected number of RI doses

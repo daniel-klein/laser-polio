@@ -1,6 +1,3 @@
-import csv
-import json
-
 import numpy as np
 import pandas as pd
 import sciris as sc
@@ -101,21 +98,6 @@ assert (
 )
 
 
-# HOT FIX
-# TODO: fix this up later!
-# Process the Reff random effects
-R0 = 14
-m = 0.15
-# R0_i = np.exp(m * (b_i - mean(b))/sd(b) + log R0)
-r0_spatial = np.exp(m * (reff_re - np.mean(reff_re)) / np.std(reff_re) + np.log(R0))
-mean_r0_spatial = np.mean(r0_spatial)
-min_r0_spatial = np.min(r0_spatial)
-max_r0_spatial = np.max(r0_spatial)
-print(f"Reff mean: {mean_r0_spatial}, min = {min_r0_spatial}, max = {max_r0_spatial}")
-r0_scalars = r0_spatial / R0
-# R0_i = np.exp(m * (b_i - mean(b))/sd(b) + log R0)
-
-
 # Set parameters
 pars = PropertySet(
     {
@@ -124,7 +106,8 @@ pars = PropertySet(
         "dur": n_days,  # Number of timesteps
         # Population
         "n_ppl": pop,  # np.array([30000, 10000, 15000, 20000, 25000]),
-        "age_pyramid_path": "data/Nigeria_age_pyramid_2024.csv",  # From https://www.populationpyramid.net/nigeria/2024/ "cbr": cbr,  # np.array([37, 41, 30, 25, 33]),  # Crude birth rate per 1000 per year
+        "age_pyramid_path": "data/Nigeria_age_pyramid_2024.csv",  # From https://www.populationpyramid.net/nigeria/2024/
+        "cbr": cbr,  # Crude birth rate per 1000 per year
         # Disease
         "init_immun": init_immun,  # Initial immunity per node
         "init_prev": init_prevs,  # Initial prevalence per node (1% infected)
@@ -152,11 +135,6 @@ pars = PropertySet(
     }
 )
 
-with open("params.json") as params_fp:
-    params = json.load(params_fp)
-
-pars += params
-
 # Initialize the sim
 sim = lp.SEIR_ABM(pars)
 sim.components = [lp.VitalDynamics_ABM, lp.DiseaseState_ABM, lp.Transmission_ABM, lp.RI_ABM, lp.SIA_ABM]
@@ -164,34 +142,10 @@ sim.components = [lp.VitalDynamics_ABM, lp.DiseaseState_ABM, lp.Transmission_ABM
 # Run the simulation
 sim.run()
 
-
-def save_results_to_csv(results, filename="simulation_results.csv"):
-    """
-    Save simulation results (S, E, I, R) to a CSV file with columns: Time, Node, S, E, I, R.
-
-    :param results: The results object containing numpy arrays for S, E, I, and R.
-    :param filename: The name of the CSV file to save.
-    """
-    timesteps, nodes = results.S.shape  # Get the number of timesteps and nodes
-
-    with open(filename, mode="w", newline="") as file:
-        writer = csv.writer(file)
-
-        # Write header
-        writer.writerow(["Time", "Node", "S", "E", "I", "R"])
-
-        # Write data
-        for t in range(timesteps):
-            for n in range(nodes):
-                writer.writerow([t, n, results.S[t, n], results.E[t, n], results.I[t, n], results.R[t, n]])
-
-    print(f"Results saved to {filename}")
-
+# Plot results
+sim.plot(save=True, results_path=results_path)
 
 # Turn this on (and plotting off) for calibration.
-save_results_to_csv(sim.results)
-
-# Plot results
-# sim.plot(save=True, results_path=results_path)
+lp.save_results_to_csv(sim.results)
 
 sc.printcyan("Done.")

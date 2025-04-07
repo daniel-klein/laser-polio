@@ -1,7 +1,7 @@
 # Priorities
 
 SIA/RI DATA
-- Update README
+- Ask Hil & Kurt to add links to code in curation_scripts README
 
 DEBUGGING 
 - Plot expected births?

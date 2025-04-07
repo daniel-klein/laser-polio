@@ -475,7 +475,7 @@ class DiseaseState_ABM:
         fig, axs = plt.subplots(rows, cols, figsize=(cols * 6, rows * 6), sharex=True, sharey=True, constrained_layout=True)
         axs = axs.ravel()  # Flatten in case of non-square grid
         timepoints = np.linspace(0, self.pars.dur, n_panels, dtype=int)
-        lats, lons = self.pars.centroids["CENTER_LAT"], self.pars.centroids["CENTER_LON"]
+        lats, lons = self.pars.centroids["center_lat"], self.pars.centroids["center_lon"]
 
         # Get global min and max for consistent color scale
         infection_min = np.min(self.results.I)
