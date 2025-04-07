@@ -38,7 +38,7 @@ results_path = "results/demo_zamfara"
 
 
 # Find the dot_names matching the specified string(s)
-dot_names = lp.find_matching_dot_names(regions, lp.root / "data/compiled_cbr_pop_ri_sia_underwt_africa.csv")
+dot_names = lp.find_matching_dot_names(regions, "data/compiled_cbr_pop_ri_sia_underwt_africa.csv")
 
 # Load the shape names and centroids (sans geometry)
 centroids = pd.read_csv("data/shp_names_africa_adm2.csv")
@@ -59,7 +59,6 @@ if len(prev_indices) == 0:
 init_prevs[prev_indices] = init_prev
 
 # Distance matrix
-# TODO make sure this is the same order as the dot_names
 dist_matrix = lp.get_distance_matrix("data/distance_matrix_africa_adm2.h5", dot_names)  # Load distances matrix (km)
 
 # SIA schedule
@@ -73,18 +72,33 @@ sia_schedule = lp.process_sia_schedule_polio(sia_schedule_raw, dot_names, start_
 # Age pyramid
 age = pd.read_csv("data/age_africa.csv")
 age = age[(age["adm0_name"] == "NIGERIA") & (age["Year"] == start_year)]
-prop_u5 = age.loc[age["age_group"] == "0-4", "population"].values[0] / age["population"].sum()
 # Compiled data
 df_comp = pd.read_csv("data/compiled_cbr_pop_ri_sia_underwt_africa.csv")
 df_comp = df_comp[df_comp["year"] == start_year]
 # Population data
-pop_u5 = df_comp.set_index("dot_name").loc[dot_names, "pop_u5"].values  # Extract the pop data in the same order as the dot_names
-pop = pop_u5 / prop_u5  # Estimate the total population size since the data is only for under 5s
+pop = df_comp.set_index("dot_name").loc[dot_names, "pop_total"].values  # total population (all ages)
 pop = pop * pop_scale  # Scale population
 cbr = df_comp.set_index("dot_name").loc[dot_names, "cbr"].values  # CBR data
 ri = df_comp.set_index("dot_name").loc[dot_names, "ri_eff"].values  # RI data
-sia = df_comp.set_index("dot_name").loc[dot_names, "sia_random_effect"].values  # SIA data
-reff_re = df_comp.set_index("dot_name").loc[dot_names, "reff_random_effect"].values  # Underweight data
+sia_re = df_comp.set_index("dot_name").loc[dot_names, "sia_random_effect"].values  # SIA data
+sia_prob = lp.calc_sia_prob_from_rand_eff(sia_re, center=0.7, scale=2.4)  # Secret sauce numbers from Hil
+reff_re = df_comp.set_index("dot_name").loc[dot_names, "reff_random_effect"].values  # random effects from regression model
+r0_scalars = lp.calc_r0_scalars_from_rand_eff(reff_re)  # Center and scale the random effects
+
+
+# Assert that all data arrays have the same length
+assert (
+    len(dot_names)
+    == len(dist_matrix)
+    == len(init_immun)
+    == len(centroids)
+    == len(init_prevs)
+    == len(pop)
+    == len(cbr)
+    == len(ri)
+    == len(sia_prob)
+    == len(r0_scalars)
+)
 
 
 # HOT FIX
@@ -101,20 +115,6 @@ print(f"Reff mean: {mean_r0_spatial}, min = {min_r0_spatial}, max = {max_r0_spat
 r0_scalars = r0_spatial / R0
 # R0_i = np.exp(m * (b_i - mean(b))/sd(b) + log R0)
 
-
-# Assert that all data arrays have the same length
-assert (
-    len(dot_names)
-    == len(dist_matrix)
-    == len(init_immun)
-    == len(centroids)
-    == len(init_prevs)
-    == len(pop)
-    == len(cbr)
-    == len(ri)
-    == len(sia)
-    == len(r0_scalars)
-)
 
 # Set parameters
 pars = PropertySet(
@@ -148,7 +148,7 @@ pars = PropertySet(
         # Interventions
         "vx_prob_ri": ri,  # Probability of routine vaccination
         "sia_schedule": sia_schedule,  # Schedule of SIAs
-        "vx_prob_sia": sia,  # Effectiveness of SIAs
+        "vx_prob_sia": sia_prob,  # Effectiveness of SIAs
     }
 )
 

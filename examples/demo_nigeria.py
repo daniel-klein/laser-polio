@@ -54,7 +54,6 @@ if len(prev_indices) == 0:
 init_prevs[prev_indices] = init_prev
 
 # Distance matrix
-# TODO make sure this is the same order as the dot_names
 dist_matrix = lp.get_distance_matrix("data/distance_matrix_africa_adm2.h5", dot_names)  # Load distances matrix (km)
 
 # SIA schedule
@@ -68,13 +67,11 @@ sia_schedule = lp.process_sia_schedule_polio(sia_schedule_raw, dot_names, start_
 # Age pyramid
 age = pd.read_csv("data/age_africa.csv")
 age = age[(age["adm0_name"] == "NIGERIA") & (age["Year"] == start_year)]
-prop_u5 = age.loc[age["age_group"] == "0-4", "population"].values[0] / age["population"].sum()
 # Compiled data
 df_comp = pd.read_csv("data/compiled_cbr_pop_ri_sia_underwt_africa.csv")
 df_comp = df_comp[df_comp["year"] == start_year]
 # Population data
-pop_u5 = df_comp.set_index("dot_name").loc[dot_names, "pop_u5"].values  # Extract the pop data in the same order as the dot_names
-pop = pop_u5 / prop_u5  # Estimate the total population size since the data is only for under 5s
+pop = df_comp.set_index("dot_name").loc[dot_names, "pop_total"].values  # total population (all ages)
 pop = pop * pop_scale  # Scale population
 cbr = df_comp.set_index("dot_name").loc[dot_names, "cbr"].values  # CBR data
 ri = df_comp.set_index("dot_name").loc[dot_names, "ri_eff"].values  # RI data

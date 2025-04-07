@@ -1,7 +1,6 @@
 # Priorities
 
 SIA/RI DATA
-- Switch demo_zamfara and demo_sweep over to new curation functions
 - Update README
 
 DEBUGGING 
