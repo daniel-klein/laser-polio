@@ -1,40 +1,45 @@
 # Priorities
-- Change terminology from SIA efficacy to SIA coverage spatial heterogeneity
-- ping Arie & hil about Reff REs in N Nigeria
-Objectives:
-Total cases
-Cases by year -> month
-Cases in N vs S Nigeria
-Levers: 
-R0
-R0 scalar for N Nigeria
-Gravity model coefficient (k)
-Seasonality pars
-Stretch: risk_mult_var or corr_risk_inf
 
-
+SIA/RI DATA
 - Need to use the immunity_ri_nOPV2 column and use that as including efficacy
-- Add underwt fraction back in???
-- Move translation of r0_scalars to pre-calib
-- Remember to move RE processing out of sim and into data curation
+
+DEBUGGING 
+- Plot expected births?
+- Update the birth and death plot to summarize by country.
 - Check transmission probability with real data. Why do we need R0 so high!?
 - Test full models with real data
-- Drop ABM term from components
-- Export pars as pkl
+
+CLEANUP
+- Change terminology from SIA efficacy to SIA coverage spatial heterogeneity
 - Rename variables to distinguish between exposure and infection
+- Drop ABM term from components
+
+CALIBRATION
+- Objectives:
+    - Total cases
+    - Cases by year -> month
+    - Cases in N vs S Nigeria
+- Levers: 
+    - R0
+    - R0 scalar for N Nigeria
+    - Gravity model coefficient (k)
+    - Seasonality pars
+    - Stretch: risk_mult_var or corr_risk_inf
+
+NEW FEATURES
 - Enable vx transmission (& add genome R0 multiplier, Sabin = 1/4; nOPV2 = 1/8)
 - Set a random number seed
-- Use KM's gravity model scaling approach
-- Update the birth and death plot to summarize by country.
-- Plot expected births?
-- Calibration
 - Save results & specify frequency
 - Reactive SIAs
+
+
+# Refinement
+- Use KM's gravity model scaling approach
+- Export pars as pkl
+- Add underwt fraction back in???
 - Check out the optuna sampler options: https://optuna.readthedocs.io/en/stable/reference/samplers/index.html. What did Starsim use? 
 - Re-org the data folder to have timestamped files? Or time-stamped folders? 
 - Check that the SIA schedule dot_names are in my shapes
-
-# Refinement
 - Switch to radiation model (easier to explain cuz the numbers are %within vs %without)
 - Count number of Sabin2 or nOPV2 transmissions
 - Count number of exportations for calibration
