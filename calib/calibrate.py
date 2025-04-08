@@ -17,7 +17,10 @@ from logic import process_data  # <-- User-configurable logic
 import laser_polio as lp
 
 # ------------------- USER CONFIG -------------------
-model_script = Path(lp.root / "calib/demo_zamfara.py").resolve(strict=True)
+study_name = "calib_demo_zamfara_r0"
+calib_config = lp.root / "calib/calib_configs/calib_pars_r0.yaml"
+model_config = Path(lp.root / "calib/demo_zamfara.py").resolve(strict=True)
+config_pars = lp.root / "calib/model_configs/config_base_avaria.yaml"
 PARAMS_FILE = "params.json"
 RESULTS_FILE = lp.root / "calib/results/calib_demo_zamfara/simulation_results.csv"
 ACTUAL_DATA_FILE = lp.root / "examples/calib_demo_zamfara/synthetic_infection_counts_zamfara_250.csv"
@@ -25,7 +28,7 @@ ACTUAL_DATA_FILE = lp.root / "examples/calib_demo_zamfara/synthetic_infection_co
 
 
 def get_native_runstring():
-    return [sys.executable, str(model_script)]
+    return [sys.executable, str(model_config)]
 
 
 def objective(trial, calib_pars, config_pars):
@@ -64,10 +67,10 @@ def objective(trial, calib_pars, config_pars):
 
 
 @click.command()
-@click.option("--study-name", default="laser_polio_test", help="Name of the Optuna study.")
+@click.option("--study_name", default=str(study_name), help="Name of the Optuna study.")
 @click.option("--num-trials", default=1, type=int, help="Number of optimization trials.")
-@click.option("--calib-pars", default="calib_pars.yaml", type=str, help="Calibration parameter file.")
-@click.option("--config-pars", default="config.yaml", type=str, help="Base configuration file.")
+@click.option("--calib-pars", default=str(calib_config), type=str, help="Calibration parameter file.")
+@click.option("--config-pars", default=str(config_pars), type=str, help="Base configuration file.")
 def run_worker(study_name, num_trials, calib_pars, config_pars):
     """Run Optuna trials with imported configuration and scoring logic."""
 
@@ -84,8 +87,7 @@ def run_worker(study_name, num_trials, calib_pars, config_pars):
     with open(config_pars) as f:
         config_pars_dict = yaml.safe_load(f)
 
-    run_name = calib_pars_dict["metadata"]["name"]
-    output_dir = Path(run_name)
+    output_dir = Path(study_name)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     study.set_user_attr("parameter_spec", calib_pars_dict.get("parameters", {}))

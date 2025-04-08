@@ -86,6 +86,7 @@ sia_prob = lp.calc_sia_prob_from_rand_eff(sia_re, center=0.7, scale=2.4)  # Secr
 reff_re = df_comp.set_index("dot_name").loc[dot_names, "reff_random_effect"].values  # random effects from regression model
 r0_scalars = lp.calc_r0_scalars_from_rand_eff(reff_re)  # Center and scale the random effects
 
+
 # Assert that all data arrays have the same length
 assert (
     len(dot_names)
@@ -99,7 +100,6 @@ assert (
     == len(sia_prob)
     == len(r0_scalars)
 )
-
 
 # Set parameters
 pars = PropertySet(
