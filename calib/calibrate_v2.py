@@ -11,16 +11,16 @@ import yaml
 from logic import compute_fit
 from logic import process_data
 
-# ------------------- USER CONFIG -------------------
 import laser_polio as lp
 
+# ------------------- USER CONFIG -------------------
+num_trials = 2
 study_name = "calib_demo_zamfara_r0"
 calib_config_path = lp.root / "calib/calib_configs/calib_pars_r0.yaml"
 model_config_path = lp.root / "calib/model_configs/config_zamfara.yaml"
 setup_sim_path = lp.root / "calib/setup_sim_v2.py"
-results_path = lp.root / "calib/results/calib_demo_zamfara"
+results_path = lp.root / "calib/results" / study_name
 PARAMS_FILE = "params.json"
-# RESULTS_FILE = lp.root / "calib/results/calib_demo_zamfara/simulation_results.csv"
 ACTUAL_DATA_FILE = lp.root / "examples/calib_demo_zamfara/synthetic_infection_counts_zamfara_250.csv"
 # ---------------------------------------------------
 
@@ -78,7 +78,7 @@ def objective(trial, calib_config, model_config_path):
 
 @click.command()
 @click.option("--study-name", default=study_name, help="Name of the Optuna study.")
-@click.option("--num-trials", default=10, type=int, help="Number of optimization trials.")
+@click.option("--num-trials", default=num_trials, type=int, help="Number of optimization trials.")
 @click.option("--calib-config", default=str(calib_config_path), help="Path to calibration parameter file.")
 @click.option("--model-config", default=str(model_config_path), help="Path to model base config.")
 def run_worker(study_name, num_trials, calib_config, model_config):
