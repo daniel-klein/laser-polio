@@ -24,7 +24,7 @@ The model uses the same data and setup as the EMOD model, except in the followin
 regions = ["ZAMFARA"]
 start_year = 2019
 n_days = 365
-pop_scale = 1 / 1000
+pop_scale = 1 / 100
 init_region = "ANKA"
 init_prev = 0.001
 r0 = 14

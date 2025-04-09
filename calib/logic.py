@@ -14,28 +14,38 @@ import yaml
 import laser_polio as lp
 
 
-def calc_calib_targets(filename):
+def calc_calib_targets(filename, model_config_path=None):
     """Load simulation results and extract features for comparison."""
 
+    # Load the data & config
     df = pd.read_csv(filename)
+    with open(model_config_path) as f:
+        model_config = yaml.safe_load(f)
+
     # Parse dates to datetime object if needed
     if "date" in df.columns and not pd.api.types.is_datetime64_any_dtype(df["date"]):
         df["date"] = pd.to_datetime(df["date"])
-
-    # Total infected across all time and nodes
-    total_infected = df["I"].sum()
-
-    # Total cases in nodes 0–5
-    infected_nodes_0_5 = df[df["Node"].isin([0, 1, 2, 3, 4, 5])]["I"].sum()
-
-    # Monthly cases (total across all years for each month)
     df["month"] = df["date"].dt.month
-    monthly_cases = df.groupby("month")["I"].sum().values
 
-    return {
-        "total_infected": total_infected,
-        "monthly_cases": monthly_cases,
-    }
+    targets = {}
+
+    # 1. Total infected
+    targets["total_infected"] = df["I"].sum()
+
+    # 2. Monthly cases
+    targets["monthly_cases"] = df.groupby("month")["I"].sum().values
+
+    # 3. Regional group cases as a single array
+    if model_config and "summary_config" in model_config:
+        region_groups = model_config["summary_config"].get("region_groups", {})
+        regional_cases = []
+        for name in region_groups:
+            node_list = region_groups[name]
+            total = df[df["node"].isin(node_list)]["I"].sum()
+            regional_cases.append(total)
+        targets["regional_cases"] = np.array(regional_cases)
+
+    return targets
 
 
 def process_data(filename):
@@ -53,17 +63,30 @@ def compute_fit(actual, predicted, use_squared=False, normalize=False, weights=N
     weights = weights or {}
 
     for key in actual:
-        v1 = np.array(actual[key], dtype=float)
-        v2 = np.array(predicted[key], dtype=float)
-        gofs = np.abs(v1 - v2)
+        if key not in predicted:
+            print(f"[WARN] Key missing in predicted: {key}")
+            continue
 
-        if normalize and v1.max() > 0:
-            gofs /= v1.max()
-        if use_squared:
-            gofs **= 2
+        try:
+            v1 = np.array(actual[key], dtype=float)
+            v2 = np.array(predicted[key], dtype=float)
 
-        loss_weight = weights.get(key, 1)
-        fit += (gofs * loss_weight).sum()
+            if v1.shape != v2.shape:
+                print(f"[WARN] Shape mismatch on '{key}': {v1.shape} vs {v2.shape}")
+                continue
+
+            gofs = np.abs(v1 - v2)
+
+            if normalize and v1.max() > 0:
+                gofs = gofs / v1.max()
+            if use_squared:
+                gofs = gofs**2
+
+            weight = weights.get(key, 1)
+            fit += (gofs * weight).sum()
+
+        except Exception as e:
+            print(f"[ERROR] Skipping '{key}' due to: {e}")
 
     return fit
 
@@ -114,8 +137,8 @@ def objective(trial, calib_config, model_config_path, sim_path, results_path, pa
         return float("inf")
 
     # Load results and compute fit
-    actual = process_data(actual_data_file)
-    predicted = process_data(results_file)
+    actual = calc_calib_targets(actual_data_file, model_config_path)
+    predicted = calc_calib_targets(results_file, model_config_path)
     return compute_fit(actual, predicted)
 
 

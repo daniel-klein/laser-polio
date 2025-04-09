@@ -23,7 +23,6 @@ def setup_sim(config=None, **kwargs):
     results_path = config.get("results_path", kwargs.get("results_path", "results/demo"))
     save_plots = config.get("save_plots", kwargs.get("save_plots", False))
     save_data = config.get("save_data", kwargs.get("save_data", False))
-    summary_configs = config.get("summary_configs", kwargs.get("summary_configs", {}))
 
     print(f"[INFO] Using init_prev = {init_prev}")
 
@@ -110,11 +109,6 @@ def setup_sim(config=None, **kwargs):
     sim = lp.SEIR_ABM(pars)
     sim.components = [lp.VitalDynamics_ABM, lp.DiseaseState_ABM, lp.Transmission_ABM, lp.RI_ABM, lp.SIA_ABM]
 
-    # 11. Add custom summary configs
-    # Attach custom summary configuration from the YAML (if provided)
-    if "summary_config" in model_config:
-        sim.summary_config = model_config["summary_config"]
-
     print("[INFO] Running simulation...")
     sim.run()
 
@@ -122,7 +116,7 @@ def setup_sim(config=None, **kwargs):
         sim.plot(save=True, results_path=results_path)
     if save_data:
         Path(results_path).mkdir(parents=True, exist_ok=True)
-        lp.save_results_to_csv(sim.results, filename=results_path + "/simulation_results.csv")
+        lp.save_results_to_csv(sim, filename=results_path + "/simulation_results.csv")
 
     sc.printcyan("Done.")
 

@@ -14,7 +14,7 @@ model_config_path = lp.root / "calib/model_configs/config_zamfara.yaml"
 sim_path = lp.root / "calib/setup_sim.py"
 results_path = lp.root / "calib/results" / study_name
 params_file = "params.json"
-actual_data_file = lp.root / "examples/calib_demo_zamfara/synthetic_infection_counts_zamfara_250.csv"
+actual_data_file = lp.root / "examples/calib_demo_zamfara/synthetic_infection_counts_zamfara_r14.csv"
 # ---------------------------------------------------
 
 
