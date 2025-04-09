@@ -1,10 +1,6 @@
 # Priorities
 
 CALIBRATION
-- Objectives:
-    - Total cases
-    - Cases by year -> month
-    - Cases in N vs S Nigeria
 - Levers:
     - R0
     - R0 scalar for N Nigeria

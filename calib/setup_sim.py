@@ -14,7 +14,7 @@ def setup_sim(config=None, **kwargs):
     config = config or {}
 
     # Extract simulation setup parameters with defaults or overrides
-    regions = config.get("regions", kwargs.get("regions", ["ZAMFARA"]))
+    regions = config.get("regions", kwargs.get("regions", ["NIGERIA"]))
     start_year = config.get("start_year", kwargs.get("start_year", 2019))
     n_days = config.get("n_days", kwargs.get("n_days", 365))
     pop_scale = config.get("pop_scale", kwargs.get("pop_scale", 0.01))
@@ -123,28 +123,29 @@ def setup_sim(config=None, **kwargs):
 
 # ---------------------------- CLI ENTRY ----------------------------
 if __name__ == "__main__":
-    import argparse
+    # import argparse
 
-    import yaml
+    # import yaml
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--model-config", type=str, required=True, help="Path to base model config YAML")
-    parser.add_argument("--params-file", type=str, default="params.json", help="Trial parameter JSON file")
-    parser.add_argument("--results-path", type=str, default="simulation_results.csv", help="Path to simulation results")
-    args = parser.parse_args()
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument("--model-config", type=str, required=True, help="Path to base model config YAML")
+    # parser.add_argument("--params-file", type=str, default="params.json", help="Trial parameter JSON file")
+    # parser.add_argument("--results-path", type=str, default="simulation_results.csv", help="Path to simulation results")
+    # args = parser.parse_args()
 
-    # Load base config
-    with open(args.model_config) as f:
-        model_config = yaml.safe_load(f)
+    # # Load base config
+    # with open(args.model_config) as f:
+    #     model_config = yaml.safe_load(f)
 
-    # Load suggested parameter overrides (optional)
-    params = {}
-    if Path(args.params_file).exists():
-        with open(args.params_file) as f:
-            params = json.load(f)
+    # # Load suggested parameter overrides (optional)
+    # params = {}
+    # if Path(args.params_file).exists():
+    #     with open(args.params_file) as f:
+    #         params = json.load(f)
 
-    # Merge with precedence to Optuna params
-    config = {**model_config, **params}
-    if args.results_path:
-        config["results_path"] = args.results_path
-    setup_sim(config=config)
+    # # Merge with precedence to Optuna params
+    # config = {**model_config, **params}
+    # if args.results_path:
+    #     config["results_path"] = args.results_path
+    # setup_sim(config=config)
+    setup_sim(config={})
