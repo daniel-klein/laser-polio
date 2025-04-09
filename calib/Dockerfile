@@ -35,7 +35,7 @@ RUN pip install pipdeptree && pipdeptree -p laser-polio > /app/laser_polio_deps.
 COPY calib/logic.py .
 COPY calib/calibrate.py .
 COPY calib/calib_db.py .
-COPY calib/setup_sim.py ./calib/laser.py
+COPY calib/setup_sim.py ./laser.py
 COPY calib/cloud/check_study.sh .
 COPY calib/calib_configs/calib_pars_r0.yaml ./calib_pars.yaml
 COPY calib/model_configs/config_zamfara.yaml ./config.yaml
