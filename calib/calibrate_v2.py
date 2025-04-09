@@ -1,19 +1,11 @@
-import json
-from functools import partial
-from pathlib import Path
-
-import calib_db
 import click
-import optuna
-import yaml
-from logic import objective
+from logic import run_worker_main
 
-# from logic import run_worker
 import laser_polio as lp
 
 # ------------------- USER CONFIG -------------------
 num_trials = 2
-study_name = "calib_demo_zamfara_r0"
+study_name = "calib_demo_zamfara_r0_v2"
 calib_config_path = lp.root / "calib/calib_configs/calib_pars_r0.yaml"
 model_config_path = lp.root / "calib/model_configs/config_zamfara.yaml"
 sim_path = lp.root / "calib/setup_sim_v2.py"
@@ -28,58 +20,12 @@ actual_data_file = lp.root / "examples/calib_demo_zamfara/synthetic_infection_co
 @click.option("--num-trials", default=num_trials, type=int, help="Number of optimization trials.")
 @click.option("--calib-config", default=str(calib_config_path), help="Path to calibration parameter file.")
 @click.option("--model-config", default=str(model_config_path), help="Path to model base config.")
-def run_worker(study_name, num_trials, calib_config, model_config):
-    """Run Optuna trials using setup_sim.py."""
-    storage_url = calib_db.get_storage()
-
-    try:
-        study = optuna.load_study(study_name=study_name, storage=storage_url)
-    except Exception:
-        print(f"Creating new study: '{study_name}'")
-        study = optuna.create_study(study_name=study_name, storage=storage_url)
-
-    with open(calib_config) as f:
-        calib_config_dict = yaml.safe_load(f)
-
-    model_config_path = Path(model_config)
-
-    # Attach metadata
-    study.set_user_attr("parameter_spec", calib_config_dict.get("parameters", {}))
-    for k, v in calib_config_dict.get("metadata", {}).items():
-        study.set_user_attr(k, v)
-
-    wrapped_objective = partial(
-        objective,
-        calib_config=calib_config_dict,
-        model_config_path=model_config_path,
-        sim_path=sim_path,
-        results_path=results_path,
-        params_file=params_file,
-        actual_data_file=actual_data_file,
-    )
-
-    study.optimize(wrapped_objective, n_trials=num_trials)
-
-    # Report best trial
-    best = study.best_trial
-    print("\nBest Trial:")
-    print(f"  Value: {best.value}")
-    for k, v in best.params.items():
-        print(f"    {k}: {v}")
-
-    # Save results
-    output_dir = Path(study_name)
-    output_dir.mkdir(exist_ok=True)
-
-    df = study.trials_dataframe(attrs=("number", "value", "params", "state"))
-    df.to_csv(output_dir / "calibration_results.csv", index=False)
-
-    with open(output_dir / "best_params.json", "w") as f:
-        json.dump(best.params, f, indent=4)
-    with open(output_dir / "study_metadata.json", "w") as f:
-        json.dump(study.user_attrs, f, indent=4)
-
-    print("✅ Calibration complete. Results saved.")
+@click.option("--results-path", default=str(results_path))
+@click.option("--sim-path", default=str(sim_path))
+@click.option("--params-file", default=str(params_file))
+@click.option("--actual-data-file", default=str(actual_data_file))
+def run_worker(**kwargs):
+    run_worker_main(**kwargs)
 
 
 if __name__ == "__main__":
