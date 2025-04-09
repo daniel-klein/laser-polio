@@ -2,7 +2,6 @@
 
 import json
 import subprocess
-import sys
 from functools import partial
 from pathlib import Path
 
@@ -19,48 +18,51 @@ import laser_polio as lp
 # ------------------- USER CONFIG -------------------
 study_name = "calib_demo_zamfara_r0"
 calib_config = lp.root / "calib/calib_configs/calib_pars_r0.yaml"
-model_config = Path(lp.root / "calib/demo_zamfara.py").resolve(strict=True)
-config_pars = lp.root / "calib/model_configs/config_base_avaria.yaml"
+model_config = lp.root / "calib/model_configs/config_zamfara.yaml"
+setup_sim_path = lp.root / "setup_sim.py"
+
 PARAMS_FILE = "params.json"
 RESULTS_FILE = lp.root / "calib/results/calib_demo_zamfara/simulation_results.csv"
 ACTUAL_DATA_FILE = lp.root / "examples/calib_demo_zamfara/synthetic_infection_counts_zamfara_250.csv"
+
 # ---------------------------------------------------
 
 
-def get_native_runstring():
-    return [sys.executable, str(model_config)]
-
-
-def objective(trial, calib_pars, config_pars):
+def objective(trial, calib_config, model_config_path):
     """Optuna objective: run model with trial parameters and score result."""
     Path(RESULTS_FILE).unlink(missing_ok=True)
 
-    params = config_pars["parameters"]
-    for name, spec in calib_pars["parameters"].items():
+    suggested_params = {}
+    for name, spec in calib_config["parameters"].items():
         low = spec["low"]
         high = spec["high"]
 
         if isinstance(low, int) and isinstance(high, int):
-            params[name] = trial.suggest_int(name, low, high)
+            suggested_params[name] = trial.suggest_int(name, low, high)
         elif isinstance(low, float) or isinstance(high, float):
-            params[name] = trial.suggest_float(name, float(low), float(high))
+            suggested_params[name] = trial.suggest_float(name, float(low), float(high))
         else:
             raise TypeError(f"Cannot infer parameter type for '{name}'")
 
     Path(PARAMS_FILE).parent.mkdir(parents=True, exist_ok=True)
     with open(PARAMS_FILE, "w") as f:
-        json.dump(params, f, indent=4)
+        json.dump(suggested_params, f, indent=4)
 
     scores = []
     for _ in range(1):  # Replicates if needed
         try:
-            subprocess.run(get_native_runstring(), check=True)
-            actual = process_data(ACTUAL_DATA_FILE)
-            predicted = process_data(RESULTS_FILE)
-            scores.append(compute_fit(actual, predicted))
+            subprocess.run(
+                ["python", str(setup_sim_path), "--model-config", str(model_config_path), "--params-file", str(PARAMS_FILE)], check=True
+            )
+            # subprocess.run(setup_sim(config=model_config.get("setup_sim", {})), check=True)
         except subprocess.CalledProcessError as e:
             print(f"Subprocess failed: {e}")
             return float("inf")
+
+        # Load results and compute fit
+        actual = process_data(ACTUAL_DATA_FILE)
+        predicted = process_data(RESULTS_FILE)
+        return compute_fit(actual, predicted)
 
     Path(RESULTS_FILE).unlink(missing_ok=True)
     return np.mean(scores)
@@ -69,9 +71,9 @@ def objective(trial, calib_pars, config_pars):
 @click.command()
 @click.option("--study_name", default=str(study_name), help="Name of the Optuna study.")
 @click.option("--num-trials", default=1, type=int, help="Number of optimization trials.")
-@click.option("--calib-pars", default=str(calib_config), type=str, help="Calibration parameter file.")
-@click.option("--config-pars", default=str(config_pars), type=str, help="Base configuration file.")
-def run_worker(study_name, num_trials, calib_pars, config_pars):
+@click.option("--calib-config", default=str(calib_config), type=str, help="Calibration configuration file.")
+@click.option("--model-config", default=str(model_config), type=str, help="Model configuration file.")
+def run_worker(study_name, num_trials, calib_config, model_config):
     """Run Optuna trials with imported configuration and scoring logic."""
 
     storage_url = calib_db.get_storage()
@@ -81,20 +83,19 @@ def run_worker(study_name, num_trials, calib_pars, config_pars):
         print(f"Study '{study_name}' not found. Creating a new study.")
         study = optuna.create_study(study_name=study_name, storage=storage_url)
 
-    with open(calib_pars) as f:
-        calib_pars_dict = yaml.safe_load(f)
+    with open(calib_config) as f:
+        calib_config_dict = yaml.safe_load(f)
 
-    with open(config_pars) as f:
-        config_pars_dict = yaml.safe_load(f)
+    model_config_path = Path(model_config)
 
     output_dir = Path(study_name)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    study.set_user_attr("parameter_spec", calib_pars_dict.get("parameters", {}))
-    for key, value in calib_pars_dict.get("metadata", {}).items():
+    study.set_user_attr("parameter_spec", calib_config_dict.get("parameters", {}))
+    for key, value in calib_config_dict.get("metadata", {}).items():
         study.set_user_attr(key, value)
 
-    wrapped_objective = partial(objective, calib_pars=calib_pars_dict, config_pars=config_pars_dict)
+    wrapped_objective = partial(objective, calib_config=calib_config_dict, model_config=model_config_dict)
     study.optimize(wrapped_objective, n_trials=num_trials)
 
     # Output results
