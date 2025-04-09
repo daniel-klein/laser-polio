@@ -162,7 +162,7 @@ def run_worker_main(
     calib_config = calib_config or lp.root / "calib/calib_configs/calib_pars_r0.yaml"
     model_config = model_config or lp.root / "calib/model_configs/config_zamfara.yaml"
     results_path = results_path or lp.root / "calib/results" / study_name
-    sim_path = sim_path or lp.root / "calib/setup_sim_v2.py"
+    sim_path = sim_path or lp.root / "calib/laser.py"
     actual_data_file = actual_data_file or lp.root / "examples/calib_demo_zamfara/synthetic_infection_counts_zamfara_250.csv"
 
     print(f"[INFO] Running study: {study_name} with {num_trials} trials")
