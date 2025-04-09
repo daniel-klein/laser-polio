@@ -1,6 +1,8 @@
 # Priorities
 
 CALIBRATION
+- Targets:
+    - Stretch: age distribution
 - Levers:
     - R0
     - Seasonality pars
@@ -19,6 +21,7 @@ CLEANUP
 - Drop ABM term from components
 
 NEW FEATURES
+- Rethink distance matrix - could we reduce precision to reduce memory? Or would jut uploading lats and longs be faster? 
 - Add ability to seed infections at specific times & places
     - Use Kurt's approach for when/where to seed infections: BIRINIWA day 37, 2018 & SHINKAFI day 329, 2020
 - Add scalar for N Nigeria
@@ -30,6 +33,8 @@ NEW FEATURES
 
 
 # Refinement
+- John G recommends Finite Radiation model as default assumption
+- Work with John G to put bounds on gravity model pars??
 - Curate the surveillance delays
 - Add surveillance delays to reactive SIAs
 - Add rule for blackouts (e.g., limiting number of campaigns / year) of maybe 1-2 years

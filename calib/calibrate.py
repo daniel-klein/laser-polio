@@ -8,9 +8,9 @@ import laser_polio as lp
 
 # ------------------- USER CONFIG -------------------
 num_trials = 2
-study_name = "calib_nigeria_r0"
+study_name = "calib_zamfara_r0"
 calib_config_path = lp.root / "calib/calib_configs/calib_pars_r0.yaml"
-model_config_path = lp.root / "calib/model_configs/config_nigeria.yaml"
+model_config_path = lp.root / "calib/model_configs/config_zamfara.yaml"
 sim_path = lp.root / "calib/setup_sim.py"
 results_path = lp.root / "calib/results" / study_name
 params_file = "params.json"

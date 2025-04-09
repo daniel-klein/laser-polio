@@ -76,21 +76,8 @@ def setup_sim(config=None, **kwargs):
             "cbr": cbr,
             "init_immun": init_immun,
             "init_prev": init_prevs,
-            "r0": 14,
-            "risk_mult_var": 4.0,
-            "corr_risk_inf": 0.8,
             "r0_scalars": r0_scalars,
-            "seasonal_factor": 0.125,
-            "seasonal_phase": 180,
-            "p_paralysis": 1 / 2000,
-            "dur_exp": lp.normal(mean=3, std=1),
-            "dur_inf": lp.gamma(shape=4.51, scale=5.32),
             "distances": dist_matrix,
-            "gravity_k": 0.5,
-            "gravity_a": 1,
-            "gravity_b": 1,
-            "gravity_c": 2.0,
-            "max_migr_frac": 0.01,
             "centroids": centroids,
             "vx_prob_ri": ri,
             "sia_schedule": sia_schedule,
@@ -123,29 +110,28 @@ def setup_sim(config=None, **kwargs):
 
 # ---------------------------- CLI ENTRY ----------------------------
 if __name__ == "__main__":
-    # import argparse
+    import argparse
 
-    # import yaml
+    import yaml
 
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument("--model-config", type=str, required=True, help="Path to base model config YAML")
-    # parser.add_argument("--params-file", type=str, default="params.json", help="Trial parameter JSON file")
-    # parser.add_argument("--results-path", type=str, default="simulation_results.csv", help="Path to simulation results")
-    # args = parser.parse_args()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model-config", type=str, required=True, help="Path to base model config YAML")
+    parser.add_argument("--params-file", type=str, default="params.json", help="Trial parameter JSON file")
+    parser.add_argument("--results-path", type=str, default="simulation_results.csv", help="Path to simulation results")
+    args = parser.parse_args()
 
-    # # Load base config
-    # with open(args.model_config) as f:
-    #     model_config = yaml.safe_load(f)
+    # Load base config
+    with open(args.model_config) as f:
+        model_config = yaml.safe_load(f)
 
-    # # Load suggested parameter overrides (optional)
-    # params = {}
-    # if Path(args.params_file).exists():
-    #     with open(args.params_file) as f:
-    #         params = json.load(f)
+    # Load suggested parameter overrides (optional)
+    params = {}
+    if Path(args.params_file).exists():
+        with open(args.params_file) as f:
+            params = json.load(f)
 
-    # # Merge with precedence to Optuna params
-    # config = {**model_config, **params}
-    # if args.results_path:
-    #     config["results_path"] = args.results_path
-    # setup_sim(config=config)
-    setup_sim(config={})
+    # Merge with precedence to Optuna params
+    config = {**model_config, **params}
+    if args.results_path:
+        config["results_path"] = args.results_path
+    setup_sim(config=config)

@@ -10,4 +10,4 @@ parameters:
     high: 1.0
   seasonal_phase:
     low: 0
-    high: 365
+    high: 364.9

@@ -32,10 +32,12 @@ def calc_calib_targets(filename, model_config_path=None):
     # 1. Total infected
     targets["total_infected"] = df["I"].sum()
 
-    # 2. Monthly cases
+    # 2. Yearly cases
+
+    # 3. Monthly cases
     targets["monthly_cases"] = df.groupby("month")["I"].sum().values
 
-    # 3. Regional group cases as a single array
+    # 4. Regional group cases as a single array
     if model_config and "summary_config" in model_config:
         region_groups = model_config["summary_config"].get("region_groups", {})
         regional_cases = []
