@@ -3,9 +3,8 @@
 CALIBRATION
 - Levers:
     - R0
-    - R0 scalar for N Nigeria
-    - Gravity model coefficient (k)
     - Seasonality pars
+    - Stretch: R0 scalar for N Nigeria
     - Stretch: risk_mult_var or corr_risk_inf
 
 DEBUGGING 
