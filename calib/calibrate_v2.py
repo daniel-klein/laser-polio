@@ -1,6 +1,4 @@
 import json
-import subprocess
-import sys
 from functools import partial
 from pathlib import Path
 
@@ -8,9 +6,9 @@ import calib_db
 import click
 import optuna
 import yaml
-from logic import compute_fit
-from logic import process_data
+from logic import objective
 
+# from logic import run_worker
 import laser_polio as lp
 
 # ------------------- USER CONFIG -------------------
@@ -18,62 +16,11 @@ num_trials = 2
 study_name = "calib_demo_zamfara_r0"
 calib_config_path = lp.root / "calib/calib_configs/calib_pars_r0.yaml"
 model_config_path = lp.root / "calib/model_configs/config_zamfara.yaml"
-setup_sim_path = lp.root / "calib/setup_sim_v2.py"
+sim_path = lp.root / "calib/setup_sim_v2.py"
 results_path = lp.root / "calib/results" / study_name
-PARAMS_FILE = "params.json"
-ACTUAL_DATA_FILE = lp.root / "examples/calib_demo_zamfara/synthetic_infection_counts_zamfara_250.csv"
+params_file = "params.json"
+actual_data_file = lp.root / "examples/calib_demo_zamfara/synthetic_infection_counts_zamfara_250.csv"
 # ---------------------------------------------------
-
-
-def objective(trial, calib_config, model_config_path):
-    """Optuna objective function that runs the simulation and evaluates the fit."""
-    results_file = results_path / "simulation_results.csv"
-    if Path(results_file).exists():
-        try:
-            Path(results_file).unlink()
-        except PermissionError as e:
-            print(f"[WARN] Cannot delete file: {e}")
-
-    # Generate suggested parameters from calibration config
-    suggested_params = {}
-    for name, spec in calib_config["parameters"].items():
-        low = spec["low"]
-        high = spec["high"]
-
-        if isinstance(low, int) and isinstance(high, int):
-            suggested_params[name] = trial.suggest_int(name, low, high)
-        elif isinstance(low, float) or isinstance(high, float):
-            suggested_params[name] = trial.suggest_float(name, float(low), float(high))
-        else:
-            raise TypeError(f"Cannot infer parameter type for '{name}'")
-
-    # Save parameters to file (used by setup_sim)
-    with open(PARAMS_FILE, "w") as f:
-        json.dump(suggested_params, f, indent=4)
-
-    # Run simulation using subprocess
-    try:
-        subprocess.run(
-            [
-                sys.executable,
-                str(setup_sim_path),
-                "--model-config",
-                str(model_config_path),
-                "--params-file",
-                str(PARAMS_FILE),
-                "--results-path",
-                str(results_path),
-            ],
-            check=True,
-        )
-    except subprocess.CalledProcessError as e:
-        print(f"Simulation failed: {e}")
-        return float("inf")
-
-    # Load results and compute fit
-    actual = process_data(ACTUAL_DATA_FILE)
-    predicted = process_data(results_file)
-    return compute_fit(actual, predicted)
 
 
 @click.command()
@@ -105,6 +52,10 @@ def run_worker(study_name, num_trials, calib_config, model_config):
         objective,
         calib_config=calib_config_dict,
         model_config_path=model_config_path,
+        sim_path=sim_path,
+        results_path=results_path,
+        params_file=params_file,
+        actual_data_file=actual_data_file,
     )
 
     study.optimize(wrapped_objective, n_trials=num_trials)
