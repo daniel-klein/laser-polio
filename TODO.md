@@ -24,6 +24,8 @@ CLEANUP
 - Drop ABM term from components
 
 NEW FEATURES
+- Add ability to seed infections at specific times & places
+    - Use Kurt's approach for when/where to seed infections: BIRINIWA day 37, 2018 & SHINKAFI day 329, 2020
 - Add scalar for N Nigeria
 - Enable vx transmission (& add genome R0 multiplier, Sabin = 1/4; nOPV2 = 1/8)
 - Set a random number seed

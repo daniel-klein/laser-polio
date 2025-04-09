@@ -14,6 +14,30 @@ import yaml
 import laser_polio as lp
 
 
+def calc_calib_targets(filename):
+    """Load simulation results and extract features for comparison."""
+
+    df = pd.read_csv(filename)
+    # Parse dates to datetime object if needed
+    if "date" in df.columns and not pd.api.types.is_datetime64_any_dtype(df["date"]):
+        df["date"] = pd.to_datetime(df["date"])
+
+    # Total infected across all time and nodes
+    total_infected = df["I"].sum()
+
+    # Total cases in nodes 0–5
+    infected_nodes_0_5 = df[df["Node"].isin([0, 1, 2, 3, 4, 5])]["I"].sum()
+
+    # Monthly cases (total across all years for each month)
+    df["month"] = df["date"].dt.month
+    monthly_cases = df.groupby("month")["I"].sum().values
+
+    return {
+        "total_infected": total_infected,
+        "monthly_cases": monthly_cases,
+    }
+
+
 def process_data(filename):
     """Load simulation results and extract features for comparison."""
     df = pd.read_csv(filename)

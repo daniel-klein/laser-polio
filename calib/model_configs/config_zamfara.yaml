@@ -7,3 +7,8 @@ init_prev: 0.05
 results_path: "results/demo_zamfara"
 save_plots: false
 save_data: true
+summary_config:
+  region_groups:
+    northern_nigeria: [0, 1, 2]
+    southern_nigeria: [3, 4, 5]
+    major_hubs: [0, 5]

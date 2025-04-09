@@ -3,6 +3,9 @@ from logic import run_worker_main
 
 import laser_polio as lp
 
+# TODO: Pass the process_data function to the calibrator
+
+
 # ------------------- USER CONFIG -------------------
 num_trials = 2
 study_name = "calib_demo_zamfara_r0_v2"
