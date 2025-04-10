@@ -82,7 +82,7 @@ reff_re = df_comp.set_index("dot_name").loc[dot_names, "reff_random_effect"].val
 r0_scalars = lp.calc_r0_scalars_from_rand_eff(reff_re)  # Center and scale the random effects
 
 # Load the actual case data
-epi = pd.read_hdf("data/epi_africa_20250408.h5", key="epi")
+epi = lp.get_epi_data("data/epi_africa_20250408.h5", dot_names, node_lookup, start_year, n_days)
 
 # Assert that all data arrays have the same length
 assert (

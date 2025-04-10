@@ -40,8 +40,8 @@ results_path = "results/demo_zamfara"
 # Find the dot_names matching the specified string(s)
 dot_names = lp.find_matching_dot_names(regions, "data/compiled_cbr_pop_ri_sia_underwt_africa.csv")
 
+# Load the node_lookup dictionary with node_id, dot_names, centroids
 node_lookup = lp.get_node_lookup("data/node_lookup.json", dot_names)
-
 
 # Initial immunity
 init_immun = pd.read_hdf("data/init_immunity_0.5coverage_january.h5", key="immunity")

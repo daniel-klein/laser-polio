@@ -35,8 +35,8 @@ results_path = "results/demo_nigeria"
 # Find the dot_names matching the specified string(s)
 dot_names = lp.find_matching_dot_names(regions, "data/compiled_cbr_pop_ri_sia_underwt_africa.csv")
 
+# Load the node_lookup dictionary with node_id, dot_names, centroids
 node_lookup = lp.get_node_lookup("data/node_lookup.json", dot_names)
-
 
 # Initial immunity
 init_immun = pd.read_hdf("data/init_immunity_0.5coverage_january.h5", key="immunity")
@@ -79,6 +79,8 @@ sia_prob = lp.calc_sia_prob_from_rand_eff(sia_re, center=0.7, scale=2.4)  # Secr
 reff_re = df_comp.set_index("dot_name").loc[dot_names, "reff_random_effect"].values  # random effects from regression model
 r0_scalars = lp.calc_r0_scalars_from_rand_eff(reff_re)  # Center and scale the random effects
 
+# Load the actual case data
+epi = lp.get_epi_data("data/epi_africa_20250408.h5", dot_names, node_lookup, start_year, n_days)
 
 # Assert that all data arrays have the same length
 assert (

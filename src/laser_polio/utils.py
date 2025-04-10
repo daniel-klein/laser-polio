@@ -346,7 +346,7 @@ def process_sia_schedule_polio(df, region_names, sim_start_date):
     return result
 
 
-def get_epi_data(filename, dot_names, start_year, n_days):
+def get_epi_data(filename, dot_names, node_lookup, start_year, n_days):
     """Curate the epi data for a specific set of dot names."""
 
     # Load data
@@ -364,6 +364,10 @@ def get_epi_data(filename, dot_names, start_year, n_days):
     # Sort by date then node
     df = df.sort_values(by=["date", "dot_name"])
     df = df.reset_index(drop=True)
+
+    # Assign node_ids based on the node_lookup dictionary
+    dotname_to_nodeid = {v["dot_name"]: k for k, v in node_lookup.items()}
+    df["node_id"] = df["dot_name"].map(dotname_to_nodeid)
 
     # Ensure that the nodes are in the same order
     assert np.all(df["dot_name"][0 : len(dot_names)].values == dot_names), "The nodes are not in the same order as the dot_names."
