@@ -158,6 +158,7 @@ for shapefile, columns_to_clean, adm_level in shapefiles:
         }
         with open("data/node_lookup.json", "w") as f:
             json.dump(node_lookup, f, indent=2)
+            f.write("\n")  # <-- adds a clean empty newline at the end
 
 # Show result
 sc.printcyan("\n🗂 Final layers in combined GPKG:")
