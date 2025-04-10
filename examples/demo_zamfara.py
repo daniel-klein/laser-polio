@@ -1,5 +1,3 @@
-import json
-
 import numpy as np
 import pandas as pd
 import sciris as sc
@@ -26,7 +24,7 @@ The model uses the same data and setup as the EMOD model, except in the followin
 regions = ["ZAMFARA"]
 start_year = 2019
 n_days = 365
-pop_scale = 1 / 10
+pop_scale = 1 / 100
 init_region = "ANKA"
 init_prev = 0.001
 r0 = 14
@@ -40,8 +38,7 @@ results_path = "results/demo_zamfara"
 dot_names = lp.find_matching_dot_names(regions, "data/compiled_cbr_pop_ri_sia_underwt_africa.csv")
 
 # Load the node_lookup dictionary with node_id, dot_names, centroids
-full_node_lookup = json.load(open("data/node_lookup.json"))
-node_lookup = {node_id: data for node_id, data in full_node_lookup.items() if data["dot_name"] in dot_names}
+node_lookup = lp.get_node_lookup("data/node_lookup.json", dot_names)
 
 # Initial immunity
 init_immun = pd.read_hdf("data/init_immunity_0.5coverage_january.h5", key="immunity")
@@ -131,7 +128,7 @@ pars = PropertySet(
         "gravity_b": 1,  # Destination population exponent
         "gravity_c": 2.0,  # Distance exponent
         "max_migr_frac": 0.01,  # Fraction of population that migrates
-        "centroids": node_lookup,  # Centroids of the nodes
+        "node_lookup": node_lookup,  # Node info (node_id are keys, dict contains dot_name, lat, lon)
         # Interventions
         "vx_prob_ri": ri,  # Probability of routine vaccination
         "sia_schedule": sia_schedule,  # Schedule of SIAs
@@ -150,6 +147,6 @@ sim.run()
 sim.plot(save=True, results_path=results_path)
 
 # Turn this on (and plotting off) for calibration.
-lp.save_results_to_csv(sim.results)
+lp.save_results_to_csv(sim, filename=results_path + "/simulation_results.csv")
 
 sc.printcyan("Done.")

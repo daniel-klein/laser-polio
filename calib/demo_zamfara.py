@@ -91,7 +91,7 @@ assert (
     len(dot_names)
     == len(dist_matrix)
     == len(init_immun)
-    == len(centroids)
+    == len(node_lookup)
     == len(init_prevs)
     == len(pop)
     == len(cbr)
@@ -130,7 +130,7 @@ pars = PropertySet(
         "gravity_b": 1,  # Destination population exponent
         "gravity_c": 2.0,  # Distance exponent
         "max_migr_frac": 0.01,  # Fraction of population that migrates
-        "centroids": centroids,  # Centroids of the nodes
+        "node_lookup": node_lookup,  # Node info (node_id are keys, dict contains dot_name, lat, lon)
         # Interventions
         "vx_prob_ri": ri,  # Probability of routine vaccination
         "sia_schedule": sia_schedule,  # Schedule of SIAs

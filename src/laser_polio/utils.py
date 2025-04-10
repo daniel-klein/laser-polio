@@ -1,5 +1,6 @@
 import csv
 import datetime as dt
+import json
 import os
 from zoneinfo import ZoneInfo  # Python 3.9+
 
@@ -16,6 +17,7 @@ __all__ = [
     "find_matching_dot_names",
     "get_distance_matrix",
     "get_epi_data",
+    "get_node_lookup",
     "get_seasonality",
     "get_tot_pop_and_cbr",
     "get_woy",
@@ -202,6 +204,30 @@ def get_distance_matrix(distance_matrix_path, name_filter):
     dist_matrix = dist_df_filtered.values
 
     return dist_matrix
+
+
+def get_node_lookup(node_lookup_path, dot_names):
+    """
+    Load the node_lookup dictionary, filter by dot_names, and assign integer node_ids.
+
+    :param node_lookup_path: Path to the JSON file containing the full node_lookup dictionary.
+    :param dot_names: List of dot_names to filter the node_lookup dictionary.
+    :return: A dictionary with integer node_ids as keys and filtered node_lookup values.
+    """
+    # Load the full node_lookup dictionary
+    full_node_lookup = json.load(open(node_lookup_path))
+
+    # Filter by dot_names
+    node_lookup = {key: full_node_lookup[key] for key in dot_names}
+
+    # Test ordering
+    keys_in_order = list(node_lookup.keys())
+    assert np.all(keys_in_order == dot_names), "Node lookup keys do not match or are not in the same order as dot_names."
+
+    # Assign integer node_ids to the node_lookup dictionary
+    node_lookup = dict(zip(range(len(dot_names)), node_lookup.values(), strict=False))
+
+    return node_lookup
 
 
 def get_tot_pop_and_cbr(file_path, regions=None, isos=None, year=None):
