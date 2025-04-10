@@ -1,9 +1,13 @@
 import click
+import os
 from logic import run_worker_main
 from pathlib import Path
 
 # TODO: Pass the process_data function to the calibrator
 
+
+#if os.getenv( "POLIO_ROOT" ):
+    #lp.root = Path( os.getenv( "POLIO_ROOT" ) )
 
 # ------------------- USER CONFIG -------------------
 num_trials = 2
@@ -13,7 +17,7 @@ model_config_path = "config.yaml"
 sim_path = "laser.py"
 results_path = Path( "calib/results" ) / study_name
 params_file = "params.json"
-actual_data_file = "examples/calib_demo/synthetic_infection_counts.csv"
+actual_data_file = "examples/calib_demo_zamfara/synthetic_infection_counts.csv"
 # ---------------------------------------------------
 
 

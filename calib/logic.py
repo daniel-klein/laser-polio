@@ -200,7 +200,7 @@ def run_worker_main(
         print(f"    {k}: {v}")
 
     output_dir = Path(results_path)
-    output_dir.mkdir(exist_ok=True)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     df = study.trials_dataframe(attrs=("number", "value", "params", "state"))
     df.to_csv(output_dir / "calibration_results.csv", index=False)
