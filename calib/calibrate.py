@@ -21,7 +21,9 @@ results_path = lp.root / "calib/results" / study_name
 params_file = "params.json"
 actual_data_file = lp.root / "examples/calib_demo_zamfara/synthetic_infection_counts_zamfara_r14.csv"
 # ---------------------------------------------------
-
+import logic
+import calib_target_lib
+logic.calc_calib_targets = calib_target_lib.my_better_process_data_fn
 
 @click.command(context_settings=CONTEXT_SETTINGS)
 @click.option("--study-name", default=study_name, show_default=True, help="Name of the Optuna study.")
