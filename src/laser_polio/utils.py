@@ -15,6 +15,7 @@ __all__ = [
     "daterange",
     "find_matching_dot_names",
     "get_distance_matrix",
+    "get_epi_data",
     "get_seasonality",
     "get_tot_pop_and_cbr",
     "get_woy",
@@ -127,24 +128,6 @@ def daterange(start_date, days):
 
     date_range = np.array([start_date + dt.timedelta(days=i) for i in range(days)])
     return date_range
-
-
-def ensure_list(obj):
-    """
-    Ensure that the input object is a list. If the object is not a list, wrap it in a list.
-
-    Args:
-        obj (any): The object to ensure is a list.
-
-    Returns:
-        list: The input object wrapped in a list if it was not already a list.
-    """
-    if obj is None:
-        return []
-    elif isinstance(obj, list):
-        return obj
-    else:
-        return [obj]
 
 
 def find_matching_dot_names(patterns, ref_file):
@@ -335,6 +318,31 @@ def process_sia_schedule_polio(df, region_names, sim_start_date):
     result = summary.to_dict(orient="records")
 
     return result
+
+
+def get_epi_data(filename, dot_names, start_year, n_days):
+    """Curate the epi data for a specific set of dot names."""
+
+    # Load data
+    df = pd.read_hdf(filename, key="epi")
+
+    # Filter by dot_names
+    df = df[df["dot_name"].isin(dot_names)]
+
+    # Filter by dates
+    df["date"] = pd.to_datetime(df["month_start"])
+    start_date = pd.to_datetime(f"{start_year}-01-01")
+    end_date = pd.to_datetime(start_date + pd.DateOffset(days=n_days))
+    df = df[(df["date"] >= start_date) & (df["date"] < end_date)]
+
+    # Sort by date then node
+    df = df.sort_values(by=["date", "dot_name"])
+    df = df.reset_index(drop=True)
+
+    # Ensure that the nodes are in the same order
+    assert np.all(df["dot_name"][0 : len(dot_names)].values == dot_names), "The nodes are not in the same order as the dot_names."
+
+    return df
 
 
 def get_woy(sim):

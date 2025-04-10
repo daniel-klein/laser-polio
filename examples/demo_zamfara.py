@@ -1,3 +1,5 @@
+import json
+
 import numpy as np
 import pandas as pd
 import sciris as sc
@@ -37,9 +39,9 @@ results_path = "results/demo_zamfara"
 # Find the dot_names matching the specified string(s)
 dot_names = lp.find_matching_dot_names(regions, "data/compiled_cbr_pop_ri_sia_underwt_africa.csv")
 
-# Load the shape names and centroids (sans geometry)
-centroids = pd.read_csv("data/shp_names_africa_adm2.csv")
-centroids = centroids.set_index("dot_name").loc[dot_names]
+# Load the node_lookup dictionary with node_id, dot_names, centroids
+full_node_lookup = json.load(open("data/node_lookup.json"))
+node_lookup = {node_id: data for node_id, data in full_node_lookup.items() if data["dot_name"] in dot_names}
 
 # Initial immunity
 init_immun = pd.read_hdf("data/init_immunity_0.5coverage_january.h5", key="immunity")
@@ -82,13 +84,15 @@ sia_prob = lp.calc_sia_prob_from_rand_eff(sia_re, center=0.7, scale=2.4)  # Secr
 reff_re = df_comp.set_index("dot_name").loc[dot_names, "reff_random_effect"].values  # random effects from regression model
 r0_scalars = lp.calc_r0_scalars_from_rand_eff(reff_re)  # Center and scale the random effects
 
+# Load the actual case data
+epi = pd.read_hdf("data/epi_africa_20250408.h5", key="epi")
 
 # Assert that all data arrays have the same length
 assert (
     len(dot_names)
     == len(dist_matrix)
     == len(init_immun)
-    == len(centroids)
+    == len(node_lookup)
     == len(init_prevs)
     == len(pop)
     == len(cbr)
@@ -127,7 +131,7 @@ pars = PropertySet(
         "gravity_b": 1,  # Destination population exponent
         "gravity_c": 2.0,  # Distance exponent
         "max_migr_frac": 0.01,  # Fraction of population that migrates
-        "centroids": centroids,  # Centroids of the nodes
+        "centroids": node_lookup,  # Centroids of the nodes
         # Interventions
         "vx_prob_ri": ri,  # Probability of routine vaccination
         "sia_schedule": sia_schedule,  # Schedule of SIAs

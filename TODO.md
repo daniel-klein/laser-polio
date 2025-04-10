@@ -35,6 +35,7 @@ NEW FEATURES
 
 
 # Refinement
+- Is there a way to only load data & initialize sims once during calibration? How much speedup could we get?
 - Calib question: Is there any appetite for making a broadly usable calibration bootstrapping function? For example, paralytic cases are a rare (1/2000) subset of Infections. So after/during calibration, we could resample the infection counts and get a bunch of new paralysis counts essentially for free.
 - Curate the surveillance delays
 - Add surveillance delays to reactive SIAs
