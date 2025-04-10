@@ -153,7 +153,7 @@ for shapefile, columns_to_clean, adm_level in shapefiles:
         # shp_names.to_csv("data/shp_names_africa_adm2.csv", index=False)
 
         node_lookup = {
-            i: {"dot_name": row["dot_name"], "lat": float(row["center_lat"]), "lon": float(row["center_lon"])}
+            row["dot_name"]: {"dot_name": row["dot_name"], "lat": float(row["center_lat"]), "lon": float(row["center_lon"])}
             for i, row in filtered_gdf.iterrows()
         }
         with open("data/node_lookup.json", "w") as f:
