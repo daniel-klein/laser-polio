@@ -10,10 +10,10 @@ This test is based on examples/demo_nigeria.py
 
 regions = ["ZAMFARA"]
 start_year = 2019
-n_days = 5
+n_days = 60
 pop_scale = 1 / 100
 init_region = "ANKA"
-init_prev = 0.001
+init_prev = 0.05
 r0 = 14
 results_path = "results/demo_zamfara"
 
