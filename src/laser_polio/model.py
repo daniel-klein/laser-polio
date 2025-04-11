@@ -340,6 +340,7 @@ class DiseaseState_ABM:
                 sim.people.true_capacity = sim.people.capacity - deletions
 
                 # This is our faster solution for doing initial immunity
+                # TODO: doesn't this need to be filtered by active count???? Testing below seems ok. I'm not certain why this works...
                 alive_mask = self.people.disease_state >= 0  # Mask for alive individuals
                 node_ids = self.people.node_id
                 dob = self.people.date_of_birth * -1
@@ -653,20 +654,21 @@ def fast_infect(node_ids, exposure_probs, disease_state, new_infections):
             disease_state[sus_indices[left]] = 1
 
 
-@nb.njit((nb.int32[:], nb.int32[:], nb.int32[:], nb.int32), nogil=True, cache=True)
-def count_SEIRP(node_id, disease_state, paralyzed, n_nodes):
+@nb.njit((nb.int32[:], nb.int32[:], nb.int32, nb.int32[:], nb.int32), nogil=True, cache=True)
+def count_SEIRP(node_id, disease_state, people_count, paralyzed, n_nodes):
     """
     Go through each person exactly once and increment counters for their node.
 
     node_id:        array of node IDs for each individual
     disease_state:  array storing each person's disease state (-1=dead/inactive, 0=S, 1=E, 2=I, 3=R)
+    people_count:   number of active individuals in the population
     paralyzed:      array (0 or 1) if the person is paralyzed
     n_nodes:        total number of nodes
 
     Returns: S, E, I, R, P arrays, each length n_nodes
     """
 
-    alive = disease_state >= 0  # Only count those who are alive
+    alive = disease_state[:people_count] >= 0  # Only count those who are alive
     S = np.zeros(n_nodes, dtype=np.int64)
     E = np.zeros(n_nodes, dtype=np.int64)
     I = np.zeros(n_nodes, dtype=np.int64)
@@ -802,6 +804,7 @@ class Transmission_ABM:
         S_counts, E_counts, I_counts, R_counts, P_counts = count_SEIRP(
             self.people.node_id,
             self.people.disease_state,
+            self.people.count,
             self.people.paralyzed,
             np.int32(len(self.nodes)),
         )
