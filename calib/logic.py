@@ -1,6 +1,7 @@
 import json
 import subprocess
 import sys
+import shutil
 from functools import partial
 from pathlib import Path
 
@@ -247,5 +248,7 @@ def run_worker_main(
         json.dump(best.params, f, indent=4)
     with open(output_dir / "study_metadata.json", "w") as f:
         json.dump(study.user_attrs, f, indent=4)
+
+    shutil.copy(model_config, output_dir / "model_config.yaml")
 
     print("✅ Calibration complete. Results saved.")
