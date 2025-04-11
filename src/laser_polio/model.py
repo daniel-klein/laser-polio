@@ -1,4 +1,5 @@
 import time
+from collections import defaultdict
 from copy import deepcopy
 from pathlib import Path
 
@@ -124,7 +125,7 @@ class SEIR_ABM:
 
     def run(self):
         sc.printcyan("Initialization complete. Running simulation...")
-        self.component_times = dict.fromkeys(self.instances, 0.0)
+        self.component_times = defaultdict(float)  # Initialize component times
         self.component_times["report"] = 0
         with alive_bar(self.nt, title="Simulation progress:") as bar:
             for tick in range(self.nt):
@@ -137,19 +138,19 @@ class SEIR_ABM:
                         start_time = time.perf_counter()
                         component.step()
                         end_time = time.perf_counter()
-                        self.component_times[component] += end_time - start_time
+                        self.component_times[component.__class__.__name__ + ".step()"] += end_time - start_time
 
-                    start_time = time.perf_counter()
                     self.log_results(tick)
-                    end_time = time.perf_counter()
-                    self.component_times["report"] += end_time - start_time
                     self.t += 1
                 bar()  # Update the progress bar
         sc.printcyan("Simulation complete.")
 
     def log_results(self, t):
         for component in self.instances:
+            start_time = time.perf_counter()
             component.log(t)
+            end_time = time.perf_counter()
+            self.component_times[component.__class__.__name__ + ".log()"] += end_time - start_time
 
     def plot(self, save=False, results_path=None):
         if save:
@@ -165,17 +166,17 @@ class SEIR_ABM:
         self.plot_node_pop(save=save, results_path=results_path)
 
         if self.component_times:
-            labels = [component.__class__.__name__ for component in self.instances]
-            labels.append("report")
             if self.verbose > 0.1:
                 print(f"{self.instances=}")
-                print(f"{labels=}")
-            # times = [self.component_times[component] for component in labels ]
-            times = [self.component_times[component] for component in self.instances]
-            times.append(self.component_times["report"])  # hack
-            plt.figure(figsize=(6, 6))
-            plt.pie(times, labels=labels, autopct="%1.1f%%", startangle=140, colors=plt.cm.Paired.colors)
-            plt.title("Time Spent in Each Component")
+            plt.figure(figsize=(12, 12))
+            plt.pie(
+                self.component_times.values(),
+                labels=self.component_times.keys(),
+                autopct="%1.1f%%",
+                startangle=140,
+                colors=plt.cm.Paired.colors,
+            )
+            plt.title(f"Time Spent in Each Component ({sum(self.component_times.values()):.2f} seconds)")
             if save:
                 plt.savefig(results_path / "perfpie.png")
             if not save:
