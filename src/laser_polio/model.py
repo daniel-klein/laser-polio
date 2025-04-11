@@ -654,8 +654,8 @@ def fast_infect(node_ids, exposure_probs, disease_state, new_infections):
             disease_state[sus_indices[left]] = 1
 
 
-@nb.njit((nb.int32[:], nb.int32[:], nb.int32[:], nb.int32), nogil=True, cache=True)
-def count_SEIRP(node_id, disease_state, paralyzed, n_nodes):
+@nb.njit((nb.int32[:], nb.int32[:], nb.int32[:], nb.int32, nb.int32), nogil=True, cache=True)
+def count_SEIRP(node_id, disease_state, paralyzed, n_nodes, n_people):
     """
     Go through each person exactly once and increment counters for their node.
 
@@ -667,7 +667,6 @@ def count_SEIRP(node_id, disease_state, paralyzed, n_nodes):
     Returns: S, E, I, R, P arrays, each length n_nodes
     """
 
-    alive = disease_state >= 0  # Only count those who are alive
     S = np.zeros(n_nodes, dtype=np.int64)
     E = np.zeros(n_nodes, dtype=np.int64)
     I = np.zeros(n_nodes, dtype=np.int64)
@@ -675,8 +674,8 @@ def count_SEIRP(node_id, disease_state, paralyzed, n_nodes):
     P = np.zeros(n_nodes, dtype=np.int64)
 
     # Single pass over the entire population
-    for i in nb.prange(len(alive)):
-        if alive[i]:  # Only count those who are alive
+    for i in nb.prange(n_people):
+        if disease_state[i] >= 0:  # Only count those who are alive
             nd = node_id[i]
             ds = disease_state[i]
 
@@ -805,6 +804,7 @@ class Transmission_ABM:
             self.people.disease_state,
             self.people.paralyzed,
             np.int32(len(self.nodes)),
+            np.int32(self.people.count),
         )
 
         # Store them in results
