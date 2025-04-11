@@ -148,7 +148,11 @@ def test_squash():
     obs_r = sim.results.R[0].sum()
     assert np.isclose(exp_r, obs_r, atol=4000), f"Expected results.R size {exp_r}, but got {obs_r}."
 
+    # Test that mortality is occurring in R due to squashing/EULAgizing
     R_before_run = sim.results.R.copy()
+    assert np.all(R_before_run[-1] < R_before_run[0]), "Recovereds should decline in all nodes due to mortality."
+
+    # TODO test amount of mortality
 
     # Run the simulation
     sim.run()
@@ -157,11 +161,6 @@ def test_squash():
     R_after_run = sim.results.R.copy()
     assert R_after_run.shape[0] == sim.nt, "Results shape mismatch: expected number of days."
     assert R_after_run.shape[1] == len(sim.nodes), "Results shape mismatch: expected number of nodes."
-
-    # Test that mortality is occurring in R
-    assert np.all(R_before_run[-1] < R_before_run[0]), "Recovereds should decline in all nodes due to mortality."
-
-    # TODO test amount of mortality
 
     # Ensure that the number of R increased due to transmission
     assert np.sum(R_after_run[-1]) > np.sum(R_before_run[-1]), (
