@@ -16,11 +16,11 @@ pop_scale = 1 / 10
 init_region = "ANKA"
 init_prev = 0.01
 results_path = "results/scan_over_r0_k_zamfara"
-# Define the range of r0 values to sweep
+# Define the range of par values to sweep
 n_pts = 5  # Number of points to simulate
 n_reps = 3
 r0_values = np.linspace(14, 200, n_pts)
-gravity_k_values = np.linspace(1.0, 100.0, 5)  # sweep gravity_k
+gravity_k_values = np.linspace(1.0, 100.0, n_pts)
 
 
 ######### END OF USER PARS ########
