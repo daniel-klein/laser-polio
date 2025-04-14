@@ -117,12 +117,14 @@ def setup_sim(config=None, **kwargs):
 
     sc.pp(pars.to_dict())
 
-    # Inject Optuna trial params if any exist
-    if Path("params.json").exists():
-        with open("params.json") as f:
-            optuna_params = json.load(f)
-        print("[INFO] Loaded Optuna trial params:", optuna_params)
-        pars += optuna_params
+    # TODO - optionally load calibration parameters
+    # TODO - needs a rethink. Could probably just pass pars in as kwargs
+    # # Inject Optuna trial params if any exist
+    # if Path("params.json").exists():
+    #     with open("params.json") as f:
+    #         optuna_params = json.load(f)
+    #     print("[INFO] Loaded Optuna trial params:", optuna_params)
+    #     pars += optuna_params
 
     # Run sim
     sim = lp.SEIR_ABM(pars)
@@ -139,7 +141,7 @@ def setup_sim(config=None, **kwargs):
         Path(results_path).mkdir(parents=True, exist_ok=True)
         lp.save_results_to_csv(sim, filename=results_path + "/simulation_results.csv")
 
-    sc.printcyan("Done.")
+    return sim
 
 
 # Add command-line interface (CLI) for running the simulation
