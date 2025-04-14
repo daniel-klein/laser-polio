@@ -19,20 +19,36 @@ if os.getenv("POLIO_ROOT"):
 
 
 def setup_sim(config=None, **kwargs):
-    """Set up simulation from config file (YAML + overrides) or kwargs."""
+    """
+    Set up simulation from config file (YAML + overrides) or kwargs.
+
+    Example usage:
+        # Use kwargs
+        setup_sim(regions=["ZAMFARA"], r0=16)
+
+        # Pass in configs directly (or from a file)
+        config={"dur": 365 * 2, "gravity_k": 2.2}
+        setup_sim(config)
+
+        # From command line:
+        python setup_sim.py --extra-pars='{"gravity_k": 2.2, "r0": 14}'
+
+    """
+
     config = config or {}
+    configs = sc.mergedicts(config, kwargs)
 
     # Extract simulation setup parameters with defaults or overrides
-    regions = config.get("regions", kwargs.get("regions", ["NIGERIA"]))
-    start_year = config.get("start_year", kwargs.get("start_year", 2019))
-    n_days = config.get("n_days", kwargs.get("n_days", 365))
-    pop_scale = config.get("pop_scale", kwargs.get("pop_scale", 0.01))
-    init_region = config.get("init_region", kwargs.get("init_region", "ANKA"))
-    init_prev = float(config.get("init_prev", kwargs.get("init_prev", 0.01)))
-    results_path = config.get("results_path", kwargs.get("results_path", "results/demo"))
-    actual_data = config.get("actual_data", kwargs.get("actual_data", "data/epi_africa_20250408.h5"))
-    save_plots = config.get("save_plots", kwargs.get("save_plots", False))
-    save_data = config.get("save_data", kwargs.get("save_data", False))
+    regions = configs.pop("regions", ["ZAMFARA"])
+    start_year = configs.pop("start_year", 2019)
+    n_days = configs.pop("n_days", 365)
+    pop_scale = configs.pop("pop_scale", 0.01)
+    init_region = configs.pop("init_region", "ANKA")
+    init_prev = float(configs.pop("init_prev", 0.01))
+    results_path = configs.pop("results_path", "results/demo")
+    actual_data = configs.pop("actual_data", "data/epi_africa_20250408.h5")
+    save_plots = configs.pop("save_plots", False)
+    save_data = configs.pop("save_data", False)
 
     # Geography
     dot_names = lp.find_matching_dot_names(regions, lp.root / "data/compiled_cbr_pop_ri_sia_underwt_africa.csv")
@@ -79,24 +95,27 @@ def setup_sim(config=None, **kwargs):
     epi.to_csv(results_path + "/actual_data.csv", index=False)
 
     # Base parameters (can be overridden)
-    pars = PropertySet(
-        {
-            "start_date": start_date,
-            "dur": n_days,
-            "n_ppl": pop,
-            "age_pyramid_path": lp.root / "data/Nigeria_age_pyramid_2024.csv",
-            "cbr": cbr,
-            "init_immun": init_immun,
-            "init_prev": init_prevs,
-            "r0_scalars": r0_scalars,
-            "distances": dist_matrix,
-            "node_lookup": node_lookup,
-            "vx_prob_ri": ri,
-            "sia_schedule": sia_schedule,
-            "vx_prob_sia": sia_prob,
-            "actual_data": epi,
-        }
-    )
+    base_pars = {
+        "start_date": start_date,
+        "dur": n_days,
+        "n_ppl": pop,
+        "age_pyramid_path": lp.root / "data/Nigeria_age_pyramid_2024.csv",
+        "cbr": cbr,
+        "init_immun": init_immun,
+        "init_prev": init_prevs,
+        "r0_scalars": r0_scalars,
+        "distances": dist_matrix,
+        "node_lookup": node_lookup,
+        "vx_prob_ri": ri,
+        "sia_schedule": sia_schedule,
+        "vx_prob_sia": sia_prob,
+        "actual_data": epi,
+    }
+
+    # Dynamic values passed by user/CLI/Optuna
+    pars = PropertySet({**base_pars, **configs})
+
+    sc.pp(pars.to_dict())
 
     # Inject Optuna trial params if any exist
     if Path("params.json").exists():
@@ -144,7 +163,10 @@ def setup_sim(config=None, **kwargs):
     show_default=True,
     help="Path to write simulation results (CSV format)",
 )
-def main(model_config, params_file, results_path):
+@click.option(
+    "--extra-pars", type=str, default=None, help='Optional JSON string with additional parameters, e.g. \'{"r0": 14.2, "gravity_k": 1.0}\''
+)
+def main(model_config, params_file, results_path, extra_pars):
     """Run polio LASER simulation with optional config and parameter overrides."""
 
     config = {}
@@ -167,6 +189,9 @@ def main(model_config, params_file, results_path):
     # Inject result path (always)
     if results_path:
         config["results_path"] = results_path
+
+    if extra_pars:
+        config.update(json.loads(extra_pars))
 
     # Run the sim
     setup_sim(config=config)
