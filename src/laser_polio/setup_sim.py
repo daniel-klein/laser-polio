@@ -115,10 +115,13 @@ def setup_sim(config=None, **kwargs):
     # Dynamic values passed by user/CLI/Optuna
     pars = PropertySet({**base_pars, **configs})
 
-    sc.pp(pars.to_dict())
+    # Print pars
+    # TODO: make this optional
+    # sc.pp(pars.to_dict())
 
     # TODO - optionally load calibration parameters
     # TODO - needs a rethink. Could probably just pass pars in as kwargs
+    print("WARNING: Loading calibration parameters is not yet implemented.")
     # # Inject Optuna trial params if any exist
     # if Path("params.json").exists():
     #     with open("params.json") as f:
