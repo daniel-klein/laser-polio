@@ -1,6 +1,14 @@
 # Priorities
 
+DEBUGGING
+- Scan over k & how it impacts transmission. Try different seasonal terms too.
+- Plot expected births?
+- Update the birth and death plot to summarize by country.
+- Check transmission probability with real data. Why do we need R0 so high!?
+- Test full models with real data
+
 CALIBRATION
+- Try comparing observed paralysis counts to infections / 2000
 - Use more pars for Nigeria
 - Look for some values of k that get cases to move
 - Likelihood fn???
@@ -9,13 +17,6 @@ CALIBRATION
 - Levers:
     - Stretch: R0 scalar for N Nigeria
     - Stretch: risk_mult_var or corr_risk_inf
-
-DEBUGGING
-- Scan over k & how it impacts transmission. Try different seasonal terms too.
-- Plot expected births?
-- Update the birth and death plot to summarize by country.
-- Check transmission probability with real data. Why do we need R0 so high!?
-- Test full models with real data
 
 CLEANUP
 - Change terminology from SIA efficacy to SIA coverage spatial heterogeneity
