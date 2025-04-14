@@ -15,12 +15,12 @@ n_days = 180
 pop_scale = 1 / 10
 init_region = "ANKA"
 init_prev = 0.01
-results_path = "results/scan_over_r0_k_zamfara"
-# Define the range of r0 values to sweep
+results_path = "results/scan_over_seasonality_zamfara"
+# Define the range of par values to sweep
 n_pts = 5  # Number of points to simulate
-n_reps = 3
-r0_values = np.linspace(14, 200, n_pts)
-gravity_k_values = np.linspace(1.0, 100.0, 5)  # sweep gravity_k
+n_reps = 1
+seasonal_factor_values = np.linspace(0, 1, n_pts)
+seasonal_phase_values = np.linspace(1.0, 364.9, n_pts)
 
 
 ######### END OF USER PARS ########
@@ -28,17 +28,17 @@ gravity_k_values = np.linspace(1.0, 100.0, 5)  # sweep gravity_k
 
 
 # Create result matrices
-total_infected_matrix = np.zeros((len(gravity_k_values), len(r0_values)))
+total_infected_matrix = np.zeros((len(seasonal_phase_values), len(seasonal_factor_values)))
 num_nodes_infected_matrix = np.zeros_like(total_infected_matrix)
 
 
 # Run sweep
-for i, gravity_k in enumerate(gravity_k_values):
-    for j, r0 in enumerate(r0_values):
+for i, seasonal_phase in enumerate(seasonal_phase_values):
+    for j, seasonal_factor in enumerate(seasonal_factor_values):
         total_infected_accum = 0.0
         nodes_infected_accum = 0.0
 
-        print(f"\nRunning {n_reps} reps for R0 = {r0:.2f}, gravity_k = {gravity_k:.2f}")
+        print(f"\nRunning {n_reps} reps for R0 = {seasonal_factor:.2f}, seasonal_phase = {seasonal_phase:.2f}")
 
         for rep in range(n_reps):
             print(f"  ↳ Rep {rep + 1}/{n_reps}")
@@ -53,8 +53,8 @@ for i, gravity_k in enumerate(gravity_k_values):
                 results_path=results_path,
                 save_plots=False,
                 save_data=False,
-                r0=r0,
-                gravity_k=gravity_k,
+                seasonal_factor=seasonal_factor,
+                seasonal_phase=seasonal_phase,
                 seed=rep,  # Optional: control randomness
             )
 
@@ -89,22 +89,22 @@ def plot_heatmap(matrix, title, filename, xlabel, ylabel, xticks, yticks):
 
 plot_heatmap(
     total_infected_matrix,
-    title="Total Infected vs R₀ and gravity_k",
+    title="Total Infected vs seasonal_factor and seasonal_phase",
     filename="total_infected_heatmap_avg.png",
-    xlabel="R₀",
-    ylabel="gravity_k",
-    xticks=r0_values,
-    yticks=gravity_k_values,
+    xlabel="seasonal_factor",
+    ylabel="seasonal_phase",
+    xticks=seasonal_factor_values,
+    yticks=seasonal_phase_values,
 )
 
 plot_heatmap(
     num_nodes_infected_matrix,
-    title="Number of Nodes Infected vs R₀ and gravity_k",
+    title="Number of Nodes Infected vs seasonal_factor and seasonal_phase",
     filename="nodes_infected_heatmap_avg.png",
-    xlabel="R₀",
-    ylabel="gravity_k",
-    xticks=r0_values,
-    yticks=gravity_k_values,
+    xlabel="seasonal_factor",
+    ylabel="seasonal_phase",
+    xticks=seasonal_factor_values,
+    yticks=seasonal_phase_values,
 )
 
 sc.printcyan("Sweep complete.")
