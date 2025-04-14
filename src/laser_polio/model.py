@@ -33,15 +33,16 @@ class SEIR_ABM:
     Disease state codes: 0=S, 1=E, 2=I, 3=R
     """
 
-    def __init__(self, pars: PropertySet = None, verbose=0.1):
-        sc.printcyan("Initializing simulation...")
-
+    def __init__(self, pars: PropertySet = None):
         # Load default parameters and optionally override with user-specified ones
         self.pars = deepcopy(lp.default_pars)
         if pars is not None:
             self.pars += pars  # override default values
         pars = self.pars
-        self.verbose = verbose
+        self.verbose = self.pars.get("verbose", 1)  # fallback to 1 if somehow not present
+
+        if self.verbose >= 1:
+            sc.printcyan("Initializing simulation...")
 
         # Setup time
         self.t = 0  # Current timestep
@@ -121,10 +122,12 @@ class SEIR_ABM:
         # Store and instantiate
         self._components = ordered_subset
         self.instances = [cls(self) for cls in ordered_subset]
-        print(f"Initialized components: {self.instances}")
+        if self.verbose >= 2:
+            print(f"Initialized components: {self.instances}")
 
     def run(self):
-        sc.printcyan("Initialization complete. Running simulation...")
+        if self.verbose >= 1:
+            sc.printcyan("Initialization complete. Running simulation...")
         self.component_times = defaultdict(float)  # Initialize component times
         self.component_times["report"] = 0
         with alive_bar(self.nt, title="Simulation progress:") as bar:
@@ -143,7 +146,8 @@ class SEIR_ABM:
                     self.log_results(tick)
                     self.t += 1
                 bar()  # Update the progress bar
-        sc.printcyan("Simulation complete.")
+        if self.verbose >= 1:
+            sc.printcyan("Simulation complete.")
 
     def log_results(self, t):
         for component in self.instances:
@@ -160,13 +164,14 @@ class SEIR_ABM:
             else:
                 results_path = Path(results_path)  # Ensure results_path is a Path object
                 results_path.mkdir(parents=True, exist_ok=True)
-            sc.printcyan("Saving plots in " + str(results_path))
+            if self.verbose >= 1:
+                sc.printcyan("Saving plots in " + str(results_path))
         for component in self.instances:
             component.plot(save=save, results_path=results_path)
         self.plot_node_pop(save=save, results_path=results_path)
 
         if self.component_times:
-            if self.verbose > 0.1:
+            if self.verbose >= 2:
                 print(f"{self.instances=}")
             plt.figure(figsize=(12, 12))
             plt.pie(
@@ -241,7 +246,8 @@ class DiseaseState_ABM:
         sim.results.add_array_property("paralyzed", shape=(sim.nt, len(self.nodes)), dtype=np.int32)
 
         def do_init_imm():
-            print(f"Before immune initialization, we have {sim.people.count} active agents.")
+            if self.verbose >= 2:
+                print(f"Before immune initialization, we have {sim.people.count} active agents.")
             # Initialize immunity
             if isinstance(pars.init_immun, (float, list)):  # Handle both float and list cases
                 init_immun_value = pars.init_immun[0] if isinstance(pars.init_immun, list) else pars.init_immun
@@ -393,7 +399,8 @@ class DiseaseState_ABM:
                 deletions = active_count - new_active_count
                 sim.people.true_capacity -= deletions
 
-                print(f"After immune initialization and EULA-gizing, we have {sim.people.count} active agents.")
+                if self.verbose >= 2:
+                    print(f"After immune initialization and EULA-gizing, we have {sim.people.count} active agents.")
                 # viz()
 
         do_init_imm()
@@ -1042,8 +1049,9 @@ def fast_ri(
 
         prob_vx = vx_prob_ri[node]
 
-        # print(f"Agent {i} in disease state {disease_state[i]}")
-        # print("prob_vx=", prob_vx, "prob_take=", prob_take)
+        if self.verbose >= 2:
+            print(f"Agent {i} in disease state {disease_state[i]}")
+            print("prob_vx=", prob_vx)
 
         ri_timer[i] -= step_size
         eligible = False
