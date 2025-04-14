@@ -67,7 +67,7 @@ def collect_study_results(study_name, output_dir):
 
     trials_df.to_csv(output_dir / "trials.csv", index=False)
 
-    print(f"📊 Post-execution Optuna results saved to '{output_dir}'")
+    print(f"Post-execution Optuna results saved to '{output_dir}'")
 
 def collect_study_results_cli(study_name, output_dir, storage_url="mysql://root@optuna-mysql:3306/optuna_db"):
     """Run Optuna CLI commands to extract study info and save them to files."""
@@ -79,9 +79,7 @@ def collect_study_results_cli(study_name, output_dir, storage_url="mysql://root@
         result = subprocess.run(full_cmd, capture_output=True, text=True)
         if result.returncode != 0:
             raise RuntimeError(f"Optuna CLI failed: {' '.join(full_cmd)}\n{result.stderr}")
-        #with open(output_dir / outfile, "w") as f:
-            #f.write(result.stdout)
-        print(f"📄 Saved {outfile}")
+        print(f"Saved {outfile}")
 
     # Collect stats, best trial, and trials list
     #run_optuna_cmd(['studies', 'stats'], "study_stats.txt")
@@ -141,17 +139,11 @@ def run_docker_calibration(study_name, num_trials=2):
 
     print(f"✅ Calibration complete for study: {study_name}")
 
-    """
-    # Save stdout/stderr
-    with open(study_path / "calibration_stdout.txt", "w") as f:
-        f.write(result.stdout)
-    with open(study_path / "calibration_stderr.txt", "w") as f:
-        f.write(result.stderr)
-    """
-
     # Step 3: Post-execution study reporting
     collect_study_results(study_name, study_path)
     #collect_study_results_cli(study_name, study_path) # , storage_url="sqlite:///optuna.db")
+    from calib_report import plot_stuff
+    plot_stuff( study_name, STORAGE_URL2 )
 
 if __name__ == "__main__":
-    run_docker_calibration("test_polio_calib", num_trials=2)
+    run_docker_calibration("test_polio_calb", num_trials=2)

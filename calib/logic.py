@@ -4,12 +4,14 @@ import sys
 import shutil
 from functools import partial
 from pathlib import Path
+from datetime import datetime
 
 import calib_db
 import numpy as np
 import optuna
 import pandas as pd
 import yaml
+import os
 
 # from logic import objective
 import laser_polio as lp
@@ -50,6 +52,7 @@ def calc_calib_targets_paralysis(filename, model_config_path=None):
             regional_cases.append(total)
         targets["regional_cases"] = np.array(regional_cases)
 
+    print( f"{targets=}" )
     return targets
 
 
@@ -86,6 +89,7 @@ def calc_calib_targets(filename, model_config_path=None):
             regional_cases.append(total)
         targets["regional_cases"] = np.array(regional_cases)
 
+    print( f"{targets=}" )
     return targets
 
 
@@ -207,8 +211,9 @@ def run_worker_main(
     print(f"[INFO] Running study: {study_name} with {num_trials} trials")
     storage_url = calib_db.get_storage()
 
+    sampler = optuna.samplers.RandomSampler(seed=42)  # seed is optional for reproducibility
     try:
-        study = optuna.load_study(study_name=study_name, storage=storage_url)
+        study = optuna.load_study(study_name=study_name, storage=storage_url) # , sampler=sampler)
     except Exception:
         print(f"[INFO] Creating new study: '{study_name}'")
         study = optuna.create_study(study_name=study_name, storage=storage_url)
@@ -232,23 +237,36 @@ def run_worker_main(
 
     study.optimize(wrapped_objective, n_trials=num_trials)
 
-    best = study.best_trial
-    print("\nBest Trial:")
-    print(f"  Value: {best.value}")
-    for k, v in best.params.items():
-        print(f"    {k}: {v}")
+    def post_study_report():
+        best = study.best_trial
+        print("\nBest Trial:")
+        print(f"  Value: {best.value}")
+        for k, v in best.params.items():
+            print(f"    {k}: {v}")
 
-    output_dir = Path(results_path)
-    output_dir.mkdir(parents=True, exist_ok=True)
+        output_dir = Path(results_path)
+        output_dir.mkdir(parents=True, exist_ok=True)
 
-    df = study.trials_dataframe(attrs=("number", "value", "params", "state"))
-    df.to_csv(output_dir / "calibration_results.csv", index=False)
+        df = study.trials_dataframe(attrs=("number", "value", "params", "state"))
+        df.to_csv(output_dir / "calibration_results.csv", index=False)
 
-    with open(output_dir / "best_params.json", "w") as f:
-        json.dump(best.params, f, indent=4)
-    with open(output_dir / "study_metadata.json", "w") as f:
-        json.dump(study.user_attrs, f, indent=4)
+        with open(output_dir / "best_params.json", "w") as f:
+            json.dump(best.params, f, indent=4)
+        with open(output_dir / "study_metadata.json", "w") as f:
+            json.dump(study.user_attrs, f, indent=4)
 
-    shutil.copy(model_config, output_dir / "model_config.yaml")
+        metadata = dict(study.user_attrs)  # make a copy
+        metadata["timestamp"] = metadata.get("timestamp") or datetime.now().isoformat()
+        metadata["study_name"] = study.study_name
+        metadata["storage_url"] = storage_url 
+
+        # Save metadata
+        with open(output_dir / "study_metadata.json", "w") as f:
+            json.dump(metadata, f, indent=4)
+        shutil.copy(model_config, output_dir / "model_config.yaml")
+    post_study_report()
+    if not os.getenv( "HEADLESS" ):
+        from calib_report import plot_stuff
+        plot_stuff( study_name, storage_url )
 
     print("✅ Calibration complete. Results saved.")
