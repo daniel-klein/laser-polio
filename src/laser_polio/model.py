@@ -39,7 +39,7 @@ class SEIR_ABM:
         if pars is not None:
             self.pars += pars  # override default values
         pars = self.pars
-        self.verbose = self.pars.get("verbose", 1)  # fallback to 1 if somehow not present
+        self.verbose = pars["verbose"] if "verbose" in pars else 1
 
         if self.verbose >= 1:
             sc.printcyan("Initializing simulation...")
@@ -130,7 +130,7 @@ class SEIR_ABM:
             sc.printcyan("Initialization complete. Running simulation...")
         self.component_times = defaultdict(float)  # Initialize component times
         self.component_times["report"] = 0
-        with alive_bar(self.nt, title="Simulation progress:") as bar:
+        with alive_bar(self.nt, title="Simulation progress:", disable=self.verbose < 1) as bar:
             for tick in range(self.nt):
                 if tick == 0:
                     # Just record the initial state on t=0 & don't run any components
@@ -228,6 +228,7 @@ class DiseaseState_ABM:
         self.pars = sim.pars
         self.nodes = sim.nodes
         self.results = sim.results
+        self.verbose = sim.pars["verbose"] if "verbose" in sim.pars else 1
 
         # Setup the SEIR components
         pars = self.pars
@@ -417,7 +418,9 @@ class DiseaseState_ABM:
             infected_indices = []
             node_ids = self.people.node_id[: self.people.count]
             disease_states = self.people.disease_state[: self.people.count]
-            for node, prev in tqdm(enumerate(pars.init_prev), total=len(pars.init_prev), desc="Seeding infections in nodes"):
+            for node, prev in tqdm(
+                enumerate(pars.init_prev), total=len(pars.init_prev), desc="Seeding infections in nodes", disable=self.verbose < 2
+            ):
                 num_infected = int(pars.n_ppl[node] * prev)
                 alive_in_node = (node_ids == node) & (disease_states >= 0)
                 alive_in_node_indices = np.where(alive_in_node)[0]
@@ -709,6 +712,7 @@ class Transmission_ABM:
         self.nodes = np.arange(len(sim.pars.n_ppl))
         self.pars = sim.pars
         self.results = sim.results
+        self.verbose = sim.pars["verbose"] if "verbose" in sim.pars else 1
 
         # Stash the R0 scaling factor
         self.r0_scalars = self.pars.r0_scalars
@@ -840,6 +844,7 @@ class VitalDynamics_ABM:
         self.nodes = sim.nodes
         self.results = sim.results
         self.step_size = sim.pars.step_size_VitalDynamics_ABM  # Number of days between vital dynamics steps
+        self.verbose = sim.pars["verbose"] if "verbose" in sim.pars else 1
 
         # Setup the age and vital rate components
         pars = sim.pars
@@ -1049,9 +1054,9 @@ def fast_ri(
 
         prob_vx = vx_prob_ri[node]
 
-        if self.verbose >= 2:
-            print(f"Agent {i} in disease state {disease_state[i]}")
-            print("prob_vx=", prob_vx)
+        # if self.verbose >= 2:
+        #     print(f"Agent {i} in disease state {disease_state[i]}")
+        #     print("prob_vx=", prob_vx)
 
         ri_timer[i] -= step_size
         eligible = False
@@ -1081,6 +1086,8 @@ class RI_ABM:
         self.people = sim.people
         self.nodes = sim.nodes
         self.pars = sim.pars
+        self.verbose = sim.pars["verbose"] if "verbose" in sim.pars else 1
+
         # Calc date of RI (assume single point in time between 1st and 3rd dose)
         self.people.add_scalar_property("ri_timer", dtype=np.int32, default=-1)
         dob = self.people.date_of_birth
@@ -1225,6 +1232,7 @@ class SIA_ABM:
         self.nodes = sim.nodes
         self.pars = sim.pars
         self.results = sim.results
+        self.verbose = sim.pars["verbose"] if "verbose" in sim.pars else 1
 
         # Add result tracking for SIA
         self.results.add_array_property("sia_vaccinated", shape=(sim.nt, len(sim.nodes)), dtype=np.int32)

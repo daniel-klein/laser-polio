@@ -40,7 +40,7 @@ sim = lp.setup_sim(
     init_prev=init_prev,
     r0=r0,
     results_path=results_path,
-    params_file="params.json",
+    verbose=2,
 )
 
 sc.printcyan("Done.")
