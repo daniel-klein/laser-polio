@@ -794,6 +794,10 @@ class Transmission_ABM:
             beta_ind_sums = compute_beta_ind_sums(node_ids, infectivity, disease_state, len(self.nodes))
             return beta_ind_sums
 
+        # Manual debugging of transmission
+        if self.verbose >= 2:
+            print(f"{self.sim.t=}")
+
         # 1) Sum up the total amount of infectivity shed by all infectious agents within a node.
         # This is the daily number of infections that these individuals would be expected to generate
         # in a fully susceptible population sans spatial and seasonal factors.

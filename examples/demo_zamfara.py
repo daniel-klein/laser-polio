@@ -7,7 +7,7 @@ import laser_polio as lp
 
 regions = ["ZAMFARA"]
 start_year = 2019
-n_days = 365
+n_days = 7
 pop_scale = 1 / 100
 init_region = "ANKA"
 init_prev = 0.01
@@ -29,7 +29,7 @@ sim = lp.run_sim(
     results_path=results_path,
     save_plots=True,
     save_data=False,
-    verbose=1,
+    verbose=2,
     seed=1,
 )
 
