@@ -1,10 +1,10 @@
 # Priorities
 
 DEBUGGING
-- Scan over k & how it impacts transmission. Try different seasonal terms too.
+- Check transmission function calculations. Why do we need R0 so high!?
+- Check transmission probability with real data. Why do we need R0 so high!?
 - Plot expected births?
 - Update the birth and death plot to summarize by country.
-- Check transmission probability with real data. Why do we need R0 so high!?
 - Test full models with real data
 
 CALIBRATION
