@@ -50,7 +50,7 @@ def plot_stuff(study_name, storage_url):
     try:
         vis.plot_param_importances(study).show()
     except Exception as ex:
-        print( f"Exception trying to plot param importances; this usually happens when all trials have produced the same score." )
-        print( str( ex ) )
+        print("Exception trying to plot param importances; this usually happens when all trials have produced the same score.")
+        print(str(ex))
     vis.plot_slice(study).show()
     vis.plot_contour(study, params=["r0", "gravity_k"]).show()  # pick any 2 params
