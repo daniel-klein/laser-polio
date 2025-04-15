@@ -47,9 +47,7 @@ class SEIR_ABM:
         pars = self.pars
         self.verbose = pars["verbose"] if "verbose" in pars else 1
 
-        if self.verbose >= 1:
-            sc.printcyan("Initializing simulation...")
-
+        # Set the random seed
         if pars.seed is None:
             now = datetime.now()  # noqa: DTZ005
             pars.seed = now.microsecond ^ int(now.timestamp())
@@ -64,6 +62,8 @@ class SEIR_ABM:
         self.datevec = lp.daterange(self.pars["start_date"], days=self.nt)  # Time represented as an array of datetime objects
 
         # Initialize the population
+        if self.verbose >= 1:
+            sc.printcyan("Initializing simulation...")
         pars.n_ppl = np.atleast_1d(pars.n_ppl).astype(int)  # Ensure pars.n_ppl is an array
         if (pars.cbr is not None) & (len(pars.cbr) == 1):
             capacity = int(1.1 * calc_capacity(np.sum(pars.n_ppl), self.nt, pars.cbr[0]))
@@ -795,8 +795,12 @@ class Transmission_ABM:
             return beta_ind_sums
 
         # Manual debugging of transmission
-        if self.verbose >= 2:
+        if self.verbose >= 3:
             print(f"{self.sim.t=}")
+            # Print the number of people in each disease state
+            for state in [-1, 0, 1, 2, 3]:
+                count = np.sum(self.sim.people.disease_state == state)
+                print(f"disease_state {state}: {count}")
 
         # 1) Sum up the total amount of infectivity shed by all infectious agents within a node.
         # This is the daily number of infections that these individuals would be expected to generate

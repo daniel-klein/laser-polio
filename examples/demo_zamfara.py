@@ -29,7 +29,7 @@ sim = lp.run_sim(
     results_path=results_path,
     save_plots=True,
     save_data=False,
-    verbose=2,
+    verbose=3,
     seed=1,
 )
 
