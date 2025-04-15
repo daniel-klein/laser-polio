@@ -3,6 +3,7 @@ import datetime as dt
 import json
 import os
 from zoneinfo import ZoneInfo  # Python 3.9+
+import logging
 
 import numpy as np
 import pandas as pd
@@ -26,6 +27,12 @@ __all__ = [
     "save_results_to_csv",
 ]
 
+logger = logging.Logger( "laser-polio")
+# Set up the root logger to log to the console
+logging.basicConfig(
+    level=logging.INFO,  # Or DEBUG, WARNING, ERROR, etc.
+    format='[%(levelname)s] %(name)s: %(message)s'
+)
 
 def calc_r0_scalars_from_rand_eff(rand_eff=None, R0=14, R_min=3.41, R_max=16.7, emod_scale=2.485, emod_center=-1.050):
     """
@@ -167,10 +174,9 @@ def find_matching_dot_names(patterns, ref_file, verbose=2):
     adm2 = set(matched_dot_names)
 
     # Print summary
-    if verbose >= 2:
-        print(
+    logger.debug( 
             f"The input pattern(s) {patterns} matched dot_names for {len(regions)} region(s), {len(adm0)} admin0, {len(adm1)} admin1, {len(adm2)} admin2 "
-        )
+    )
 
     return matched_dot_names
 
@@ -422,7 +428,7 @@ def save_results_to_csv(sim, filename="simulation_results.csv"):
                     [t, datevec[t], n, results.S[t, n], results.E[t, n], results.I[t, n], results.R[t, n], results.paralyzed[t, n]]
                 )
 
-    print(f"Results saved to {filename}")
+    logger.info(f"Results saved to {filename}")
 
 
 def create_cumulative_deaths(total_population, max_age_years):
