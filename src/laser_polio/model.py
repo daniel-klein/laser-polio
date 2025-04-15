@@ -50,7 +50,7 @@ class SEIR_ABM:
         if self.verbose >= 1:
             sc.printcyan("Initializing simulation...")
 
-        if "seed" not in pars:
+        if pars.seed is not None:
             now = datetime.now()  # noqa: DTZ005
             pars.seed = now.microsecond ^ int(now.timestamp())
             sc.printred(f"No seed provided. Using random seed of {pars.seed}.")

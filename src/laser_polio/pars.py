@@ -9,6 +9,8 @@ __all__ = ["default_pars", "default_run_order"]
 
 default_pars = PropertySet(
     {
+        # Random seed
+        "seed": None,
         # Time
         "start_date": datetime.date(2019, 1, 1),  # Start date of the simulation
         "dur": 30,  # Number of timesteps
