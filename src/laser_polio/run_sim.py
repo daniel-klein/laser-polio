@@ -11,27 +11,27 @@ from laser_core.propertyset import PropertySet
 
 import laser_polio as lp
 
-__all__ = ["setup_sim"]
+__all__ = ["run_sim"]
 
 
 if os.getenv("POLIO_ROOT"):
     lp.root = Path(os.getenv("POLIO_ROOT"))
 
 
-def setup_sim(config=None, verbose=1, **kwargs):
+def run_sim(config=None, verbose=1, **kwargs):
     """
     Set up simulation from config file (YAML + overrides) or kwargs.
 
     Example usage:
         # Use kwargs
-        setup_sim(regions=["ZAMFARA"], r0=16)
+        run_sim(regions=["ZAMFARA"], r0=16)
 
         # Pass in configs directly (or from a file)
         config={"dur": 365 * 2, "gravity_k": 2.2}
-        setup_sim(config)
+        run_sim(config)
 
         # From command line:
-        python setup_sim.py --extra-pars='{"gravity_k": 2.2, "r0": 14}'
+        python -m laser_polio.run_sim --extra-pars='{"gravity_k": 2.2, "r0": 14}'
 
     """
 
@@ -202,7 +202,7 @@ def main(model_config, params_file, results_path, extra_pars):
         config.update(json.loads(extra_pars))
 
     # Run the sim
-    setup_sim(config=config)
+    run_sim(config=config)
 
 
 # ---------------------------- CLI ENTRY ----------------------------
