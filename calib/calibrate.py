@@ -2,6 +2,7 @@ import os
 import shutil
 from pathlib import Path
 
+import calib_db
 import click
 import optuna
 from calib_report import plot_stuff
@@ -33,7 +34,7 @@ def main(model_config, results_path, study_name, **kwargs):
 
     # Save & plot the calibration results
     shutil.copy(model_config, Path(results_path) / "model_config.yaml")
-    storage_url = os.getenv("STORAGE_URL")
+    storage_url = calib_db.get_storage()
     study = optuna.load_study(study_name=study_name, storage=storage_url)
     study.results_path = results_path
     study.storage_url = storage_url
