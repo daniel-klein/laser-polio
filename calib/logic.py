@@ -208,7 +208,7 @@ def run_worker_main(
     print(f"[INFO] Running study: {study_name} with {num_trials} trials")
     storage_url = calib_db.get_storage()
 
-    sampler = optuna.samplers.RandomSampler(seed=42)  # seed is optional for reproducibility
+    # sampler = optuna.samplers.RandomSampler(seed=42)  # seed is optional for reproducibility
     try:
         study = optuna.load_study(study_name=study_name, storage=storage_url)  # , sampler=sampler)
     except Exception:

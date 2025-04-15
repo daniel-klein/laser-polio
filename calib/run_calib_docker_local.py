@@ -110,7 +110,6 @@ def get_laser_polio_deps(study_name):
 def run_docker_calibration(study_name, num_trials=2):
     """Run the docker container to perform the calibration with a study."""
     model_config, calib_config = get_default_config_values()
-    study_path = Path(study_name)
 
     # Step 1: Save initial config inputs
     create_study_directory(study_name, model_config, calib_config)
