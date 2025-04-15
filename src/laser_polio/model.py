@@ -17,6 +17,7 @@ from laser_core.laserframe import LaserFrame
 from laser_core.migration import gravity
 from laser_core.migration import row_normalizer
 from laser_core.propertyset import PropertySet
+from laser_core.random import seed as set_seed
 from laser_core.utils import calc_capacity
 from tqdm import tqdm
 
@@ -42,6 +43,8 @@ class SEIR_ABM:
             self.pars += pars  # override default values
         pars = self.pars
         self.verbose = verbose
+
+        set_seed(pars.seed)
 
         # Setup time
         self.t = 0  # Current timestep
