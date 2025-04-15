@@ -1,5 +1,7 @@
 # Priorities
 
+Fix the shape mismatch in calibration arrays due to wrapping into next year
+
 CALIBRATION
 - Use more pars for Nigeria
 - Look for some values of k that get cases to move
