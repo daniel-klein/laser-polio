@@ -813,17 +813,13 @@ class Transmission_ABM:
             node_id = self.people.node_id[: self.people.count]
             daily_infectivity = self.people.daily_infectivity[: self.people.count]
 
-            # states = [-1, 0, 1, 2, 3]
-            # count = []
-            # for state in states:
-            #     count.append(np.sum(ds == state))
-            #     # print(f"disease_state {state}: {count}")
+            # Log timestep
+            logger.info(f"TIMESTEP: {self.sim.t}")
 
             # Let's check the average infectivity for everyone
             obs_mean_infectivity = np.mean(daily_infectivity)
             exp_mean_infectivity = 14 / 24
-            # print(f"Observed mean infectivity: {obs_mean_infectivity}")
-            # print(f"Expected mean infectivity: {exp_mean_infectivity}")
+            logger.info(f"{self.sim.t} Observed mean infectivity: {obs_mean_infectivity:.4f}, Expected: {exp_mean_infectivity:.4f}")
 
             # Go node by node
             infecteds = np.where(ds == 2)
@@ -834,23 +830,28 @@ class Transmission_ABM:
                 num_susceptibles = np.sum((node_id == node) & (ds == 0))
                 num_infecteds = np.sum((node_id == node) & (ds == 2))
 
-                # Estimate the expected infectivity
+                # Check the expected & observed infectivity
                 exp_infectivity = num_infecteds * self.sim.pars.r0 / 24
-
-                # Sum up the total amount of infectivity
                 obs_infectivity = node_beta_sum = np.sum(daily_infectivity[(node_id == node) & (ds == 2)])
 
                 # Calc beta for this node
                 beta_seasonality = lp.get_seasonality(self.sim)
                 r0_scalar = self.r0_scalars[node]
-                beta = node_beta_sum * beta_seasonality * r0_scalar  # Total node infection rate
+                beta = node_beta_sum * beta_seasonality * r0_scalar
+
                 per_agent_infection_rate = beta / np.clip(num_alive, 1, None)
                 base_prob_infection = 1 - np.exp(-per_agent_infection_rate)
-
-                # Expected number of infections
                 expected_infections = base_prob_infection * num_susceptibles
 
-                print("Stopping here")
+                # Log detailed node-level stats
+                logger.info(
+                    f"MANUAL CALCS: "
+                    f"Node {node}: S={num_susceptibles}, I={num_infecteds}, Alive={num_alive}, "
+                    f"Obs infectivity={obs_infectivity:.2f}, Exp infectivity={exp_infectivity:.2f}, "
+                    f"r0={self.sim.pars.r0}, beta_seasonality={beta_seasonality:.4f}, r0_scalar={r0_scalar:.4f}, beta={beta:.4f}, "
+                    f"per_agent_infection_rate={per_agent_infection_rate:.4f}, base_prob_infection={base_prob_infection:.4f}, "
+                    f"expected_infections={expected_infections:.2f}, "
+                )
 
         # 1) Sum up the total amount of infectivity shed by all infectious agents within a node.
         # This is the daily number of infections that these individuals would be expected to generate
@@ -883,6 +884,29 @@ class Transmission_ABM:
 
         # 6) Draw n_expected_exposures for each node according to their exposure_probs
         fast_infect(node_ids, risk, disease_state, new_infections)
+
+        if self.verbose >= 3:
+            # Log the number of people in each disease state
+            def fmt(arr, precision=6):
+                """Format NumPy arrays as single-line strings with no wrapping."""
+                return np.array2string(
+                    np.asarray(arr),  # Ensures even scalars/lists work
+                    separator=" ",
+                    threshold=np.inf,
+                    max_line_width=np.inf,
+                    precision=precision,
+                )
+
+            logger.info("NORMAL CALCS: ")
+            logger.info(f"Node beta sums: {fmt(node_beta_sums)}")
+            logger.info(f"Beta seasonality: {fmt(beta_seasonality)}")
+            logger.info(f"R0 scalars: {fmt(self.r0_scalars)}")
+            logger.info(f"Beta sums: {fmt(node_beta_sums)}")
+            logger.info(f"Beta: {fmt(beta)}")
+            logger.info(f"Per agent infection rate: {fmt(per_agent_infection_rate)}")
+            logger.info(f"Base prob infection: {fmt(base_prob_infection)}")
+            logger.info(f"Exposure sums: {fmt(exposure_sums)}")
+            logger.info(f"New infections: {fmt(new_infections)}")
 
     def log(self, t):
         # Get the counts for each node in one pass

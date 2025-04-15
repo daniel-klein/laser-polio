@@ -11,7 +11,7 @@ n_days = 7
 pop_scale = 1 / 100
 init_region = "ANKA"
 init_prev = 0.01
-r0 = 14
+r0 = 14 * 3
 results_path = "results/demo_zamfara"
 
 ######### END OF USER PARS ########
