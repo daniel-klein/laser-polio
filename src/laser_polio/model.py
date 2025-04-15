@@ -1,3 +1,4 @@
+import logging
 import time
 from collections import defaultdict
 from copy import deepcopy
@@ -25,6 +26,16 @@ from tqdm import tqdm
 import laser_polio as lp
 
 __all__ = ["RI_ABM", "SEIR_ABM", "SIA_ABM", "DiseaseState_ABM", "Transmission_ABM", "VitalDynamics_ABM"]
+
+
+# Configure the logger once
+logging.basicConfig(
+    filename="simulation_log.txt",  # or use .log or .csv depending on how you want to consume it
+    level=logging.INFO,
+    format="%(asctime)s [T=%(message)s]",
+    filemode="w",  # Overwrite each time you run; use "a" to append
+)
+logger = logging.getLogger(__name__)
 
 
 # SEIR Model
@@ -796,11 +807,50 @@ class Transmission_ABM:
 
         # Manual debugging of transmission
         if self.verbose >= 3:
-            print(f"{self.sim.t=}")
+            # print(f"{self.sim.t=}")
             # Print the number of people in each disease state
-            for state in [-1, 0, 1, 2, 3]:
-                count = np.sum(self.sim.people.disease_state == state)
-                print(f"disease_state {state}: {count}")
+            ds = self.people.disease_state[: self.people.count]
+            node_id = self.people.node_id[: self.people.count]
+            daily_infectivity = self.people.daily_infectivity[: self.people.count]
+
+            # states = [-1, 0, 1, 2, 3]
+            # count = []
+            # for state in states:
+            #     count.append(np.sum(ds == state))
+            #     # print(f"disease_state {state}: {count}")
+
+            # Let's check the average infectivity for everyone
+            obs_mean_infectivity = np.mean(daily_infectivity)
+            exp_mean_infectivity = 14 / 24
+            # print(f"Observed mean infectivity: {obs_mean_infectivity}")
+            # print(f"Expected mean infectivity: {exp_mean_infectivity}")
+
+            # Go node by node
+            infecteds = np.where(ds == 2)
+            infected_nodes = np.unique(node_id[infecteds])
+            for node in infected_nodes:
+                # Number of infecteds
+                num_alive = np.sum((node_id == node) & (ds >= 0)) + self.sim.results.R[self.sim.t][node]
+                num_susceptibles = np.sum((node_id == node) & (ds == 0))
+                num_infecteds = np.sum((node_id == node) & (ds == 2))
+
+                # Estimate the expected infectivity
+                exp_infectivity = num_infecteds * self.sim.pars.r0 / 24
+
+                # Sum up the total amount of infectivity
+                obs_infectivity = node_beta_sum = np.sum(daily_infectivity[(node_id == node) & (ds == 2)])
+
+                # Calc beta for this node
+                beta_seasonality = lp.get_seasonality(self.sim)
+                r0_scalar = self.r0_scalars[node]
+                beta = node_beta_sum * beta_seasonality * r0_scalar  # Total node infection rate
+                per_agent_infection_rate = beta / np.clip(num_alive, 1, None)
+                base_prob_infection = 1 - np.exp(-per_agent_infection_rate)
+
+                # Expected number of infections
+                expected_infections = base_prob_infection * num_susceptibles
+
+                print("Stopping here")
 
         # 1) Sum up the total amount of infectivity shed by all infectious agents within a node.
         # This is the daily number of infections that these individuals would be expected to generate
