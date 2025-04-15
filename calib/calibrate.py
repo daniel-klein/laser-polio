@@ -4,6 +4,8 @@ from pathlib import Path
 
 import click
 import optuna
+from calib_report import plot_stuff
+from calib_report import save_study_results
 from logic import run_worker_main
 
 import laser_polio as lp
@@ -26,19 +28,15 @@ actual_data_file = lp.root / "calib/results/" / study_name / "actual_data.csv"
 
 
 def main(model_config, results_path, study_name, **kwargs):
+    # Run calibration
     run_worker_main(model_config=model_config, results_path=results_path, study_name=study_name, **kwargs)
 
+    # Save & plot the calibration results
+    shutil.copy(model_config, Path(results_path) / "model_config.yaml")
     storage_url = os.getenv("STORAGE_URL")
     study = optuna.load_study(study_name=study_name, storage=storage_url)
     study.results_path = results_path
     study.storage_url = storage_url
-
-    # Now you can access model_config here safely
-    shutil.copy(model_config, Path(results_path) / "model_config.yaml")
-
-    from calib_report import plot_stuff
-    from calib_report import save_study_results
-
     save_study_results(study, Path(results_path))
     if not os.getenv("HEADLESS"):
         plot_stuff(study_name, storage_url)
