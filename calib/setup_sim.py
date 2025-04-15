@@ -1,6 +1,7 @@
 import json
 import os
 from pathlib import Path
+import logging
 
 import numpy as np
 import pandas as pd
@@ -90,8 +91,13 @@ def setup_sim(config=None, **kwargs):
             "sia_schedule": sia_schedule,
             "vx_prob_sia": sia_prob,
             "actual_data": epi,
+            "verbose": 3 # this is only for the alive bar now, tbd
         }
     )
+
+    # We set the log level for laser-polio here
+    lp.model.logger.setLevel( logging.INFO )
+    #lp.model.logger.setLevel( lp.model.VALID )
 
     # Inject Optuna trial params if any exist
     if Path("params.json").exists():

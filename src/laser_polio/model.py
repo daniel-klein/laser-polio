@@ -25,12 +25,56 @@ import laser_polio as lp
 
 __all__ = ["RI_ABM", "SEIR_ABM", "SIA_ABM", "DiseaseState_ABM", "Transmission_ABM", "VitalDynamics_ABM"]
 
-logger = logging.Logger( "laser-polio")
-# Set up the root logger to log to the console
-logging.basicConfig(
-    level=logging.INFO,  # Or DEBUG, WARNING, ERROR, etc.
-    format='[%(levelname)s] %(name)s: %(message)s'
-)
+### START WITH LOGGER SETUP
+
+# Let's color-code our log messages based on level.
+# Note that this just does the log level and module name, not the whole message
+class LogColors:
+    RESET = "\033[0m"
+    BROWN = "\033[38;5;94m"   # Approximate brown using 256-color mode
+    BLUE = "\033[34m"
+    GREEN = "\033[32m"
+    YELLOW = "\033[33m"
+    RED = "\033[31m"
+    MAGENTA = "\033[35m"
+
+# Let's add a whole new log level that logging doesn't know about
+# We do this in the middle of color-coding since our new level will need a color too.
+VALID = 15
+logging.addLevelName(VALID, "VALID")
+
+class ColorFormatter(logging.Formatter):
+    LEVEL_COLORS = {
+        logging.DEBUG: LogColors.BROWN,
+        logging.INFO: LogColors.GREEN,
+        logging.WARNING: LogColors.YELLOW,
+        logging.ERROR: LogColors.RED,
+        logging.CRITICAL: LogColors.MAGENTA,
+        VALID: LogColors.BLUE,
+    }
+
+    def format(self, record):
+        color = self.LEVEL_COLORS.get(record.levelno, LogColors.RESET)
+        record.levelname = f"{color}{record.levelname}{LogColors.RESET}"
+        record.name = f"{color}{record.name}{LogColors.RESET}"
+        return super().format(record)
+
+def valid(self, message, *args, **kwargs):
+    if self.isEnabledFor(VALID):
+        self._log(VALID, message, args, **kwargs)
+
+logging.Logger.valid = valid
+
+# Actually get the logger singleton by module-name
+logger = logging.getLogger( "laser-polio")
+# Prevents double/multiple logging
+logger.propagate = False
+
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(ColorFormatter('[%(levelname)s] %(name)s: %(message)s'))
+logger.addHandler(console_handler)
+
+### DONE WITH LOGGER SETUP
 
 # SEIR Model
 class SEIR_ABM:
@@ -47,7 +91,7 @@ class SEIR_ABM:
             self.pars += pars  # override default values
         pars = self.pars
         self.verbose = level=pars["verbose"] if "verbose" in pars else 1 # keep this for alive bar
-        logger.setLevel( level=pars["verbose"] if "verbose" in pars else logging.INFO )
+        #logger.setLevel( level=pars["verbose"] if "verbose" in pars else logging.INFO )
         logger.info( "Initializing simulation...") # cyan
 
         # Setup time
@@ -784,25 +828,30 @@ class Transmission_ABM:
         infectivity = self.people.daily_infectivity[: self.people.count]
         risk = self.people.acq_risk_multiplier[: self.people.count]
         node_beta_sums = fast_beta()
+        logger.valid(f"node_beta_sums={np.array2string(node_beta_sums, separator=',', max_line_width=9999)}")
 
         # 2) Spatially redistribute infectivity among nodes
         transfer = (node_beta_sums * self.network).astype(np.float64)  # Don't round here, we'll handle fractional infections later
         # Ensure net contagion remains positive after movement
         node_beta_sums += transfer.sum(axis=1) - transfer.sum(axis=0)
         node_beta_sums = np.maximum(node_beta_sums, 0)  # Prevent negative contagion
+        logger.valid(f"node_beta_sums [post-migration]={np.array2string(node_beta_sums, separator=',', max_line_width=9999)}")
 
         # 3) Apply seasonal & geographic modifiers
         beta_seasonality = lp.get_seasonality(self.sim)
         beta = node_beta_sums * beta_seasonality * self.r0_scalars  # Total node infection rate
+        logger.valid( f"{beta=}" )
 
         # 4) Calculate base probability for each agent to become exposed
         alive_counts = self.people.count + self.sim.results.R[self.sim.t]
         per_agent_infection_rate = beta / np.clip(alive_counts, 1, None)
         base_prob_infection = 1 - np.exp(-per_agent_infection_rate)
+        logger.valid( f"{base_prob_infection=}" )
 
         # 5) Calculate infections
         exposure_sums = compute_infections_nb(disease_state, node_ids, risk, base_prob_infection)
         new_infections = np.random.poisson(exposure_sums).astype(np.int32)
+        logger.valid( f"{new_infections=}" )
 
         # 6) Draw n_expected_exposures for each node according to their exposure_probs
         fast_infect(node_ids, risk, disease_state, new_infections)
