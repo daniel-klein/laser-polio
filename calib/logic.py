@@ -197,7 +197,6 @@ def run_worker_main(
     """Run Optuna trials to calibrate the model via CLI or programmatically."""
 
     # 👇 Provide defaults for programmatic use
-    study_name = study_name or "calib_demo_zamfara_r0"
     num_trials = num_trials or 5
     calib_config = calib_config or lp.root / "calib/calib_configs/calib_pars_r0.yaml"
     model_config = model_config or lp.root / "calib/model_configs/config_zamfara.yaml"
