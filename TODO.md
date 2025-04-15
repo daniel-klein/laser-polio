@@ -10,7 +10,6 @@ DEBUGGING
 CALIBRATION
 - Try comparing observed paralysis counts to infections / 2000
 - Use more pars for Nigeria
-- Look for some values of k that get cases to move
 - Likelihood fn???
 - Targets:
     - Stretch: age distribution
