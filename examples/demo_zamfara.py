@@ -31,7 +31,7 @@ results_path = "results/demo_zamfara"
 ###################################
 
 
-sim = lp.setup_sim(
+sim = lp.run_sim(
     regions=regions,
     start_year=start_year,
     n_days=n_days,

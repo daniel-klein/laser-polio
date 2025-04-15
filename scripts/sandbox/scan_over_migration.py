@@ -43,7 +43,7 @@ for i, max_migr_frac in enumerate(max_migr_frac_values):
         for rep in range(n_reps):
             print(f"  ↳ Rep {rep + 1}/{n_reps}")
 
-            sim = lp.setup_sim(
+            sim = lp.run_sim(
                 regions=regions,
                 start_year=start_year,
                 n_days=n_days,

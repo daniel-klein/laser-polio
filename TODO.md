@@ -37,7 +37,7 @@ NEW FEATURES
 
 
 # Refinement
-- Move setup_sim.py into src/laser_polio, rework demo_nigeria & demo_zamfara, use setup_sim for testing. Maybe with option to return pars before setup?
+- Use run_sim for testing.
 - Is there a way to only load data & initialize sims once during calibration? How much speedup could we get?
 - John G recommends Finite Radiation model as default assumption
 - Work with John G to put bounds on gravity model pars??
