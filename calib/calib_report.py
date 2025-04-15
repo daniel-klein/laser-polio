@@ -1,10 +1,10 @@
 import json
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
-import pandas as pd
-import optuna.visualization as vis
 import optuna
+import optuna.visualization as vis
+
 
 def save_study_results(study, output_dir: Path, csv_name: str = "trials.csv"):
     """
@@ -42,10 +42,11 @@ def save_study_results(study, output_dir: Path, csv_name: str = "trials.csv"):
         json.dump(metadata, f, indent=4)
 
     print(f"Study results saved to '{output_dir}'")
-def plot_stuff( study_name, storage_url ):
+
+
+def plot_stuff(study_name, storage_url):
     study = optuna.load_study(study_name=study_name, storage=storage_url)
     vis.plot_optimization_history(study).show()
     vis.plot_param_importances(study).show()
     vis.plot_slice(study).show()
-    vis.plot_contour(study, params=["r0", "gravity_k"]).show() # pick any 2 params
-
+    vis.plot_contour(study, params=["r0", "gravity_k"]).show()  # pick any 2 params

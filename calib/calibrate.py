@@ -1,10 +1,10 @@
 import os
-from pathlib import Path
 import shutil
+from pathlib import Path
 
 import click
-from logic import run_worker_main
 import optuna
+from logic import run_worker_main
 
 import laser_polio as lp
 
@@ -36,7 +36,9 @@ def main(model_config, results_path, study_name, **kwargs):
     # Now you can access model_config here safely
     shutil.copy(model_config, Path(results_path) / "model_config.yaml")
 
-    from calib_report import plot_stuff, save_study_results
+    from calib_report import plot_stuff
+    from calib_report import save_study_results
+
     save_study_results(study, Path(results_path))
     if not os.getenv("HEADLESS"):
         plot_stuff(study_name, storage_url)
@@ -55,6 +57,7 @@ def main(model_config, results_path, study_name, **kwargs):
 @click.option("--actual-data-file", default=str(actual_data_file), show_default=True)
 def cli(**kwargs):
     main(**kwargs)
+
 
 if __name__ == "__main__":
     cli()

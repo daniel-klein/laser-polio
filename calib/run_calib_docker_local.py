@@ -1,11 +1,9 @@
+import re
 import subprocess
 import uuid
-import os
-import json
-import yaml
-import optuna
 from pathlib import Path
-import re
+
+import optuna
 
 # From inside container
 STORAGE_URL = "mysql://root@optuna-mysql:3306/optuna_db"
@@ -13,23 +11,25 @@ STORAGE_URL = "mysql://root@optuna-mysql:3306/optuna_db"
 STORAGE_URL2 = "mysql+pymysql://root@127.0.0.1:3306/optuna_db"
 IMAGE_NAME = "idm-docker-staging.packages.idmod.org/laser/laser-polio:latest"
 
+
 def create_study_directory(study_name, model_config, calib_config):
     """Create a study directory and dump the model_config and calib_config."""
     study_dir = Path(study_name)
     study_dir.mkdir(parents=True, exist_ok=True)
 
-    source_paths = [ model_config, calib_config ]
+    source_paths = [model_config, calib_config]
     dest_paths = [
         study_dir / "model_config.yaml",
         study_dir / "calib_config.yaml",
     ]
 
     # Create a dictionary mapping container_path → host_path
-    files_to_copy = dict(zip(source_paths, dest_paths))
+    files_to_copy = dict(zip(source_paths, dest_paths, strict=False))
 
-    docker_copy_from_image( IMAGE_NAME, files_to_copy, study_dir )
+    docker_copy_from_image(IMAGE_NAME, files_to_copy, study_dir)
 
     print(f"✅ Study directory '{study_name}' created with config files")
+
 
 def docker_copy_from_image(image: str, files_to_copy: dict, output_dir: Path):
     """
@@ -52,11 +52,13 @@ def docker_copy_from_image(image: str, files_to_copy: dict, output_dir: Path):
     finally:
         subprocess.run(["docker", "rm", container_name], check=False)
 
+
 def get_default_config_values():
     """Run docker container with --help to retrieve default values for configs."""
     result = subprocess.run(
-        ['docker', 'run', '--rm', 'idm-docker-staging.packages.idmod.org/laser/laser-polio:latest', '--help'],
-        capture_output=True, text=True
+        ["docker", "run", "--rm", "idm-docker-staging.packages.idmod.org/laser/laser-polio:latest", "--help"],
+        capture_output=True,
+        text=True,
     )
     if result.returncode != 0:
         raise Exception("Docker command failed: " + result.stderr)
@@ -67,7 +69,7 @@ def get_default_config_values():
         for line in help_output.splitlines():
             if flag_name in line:
                 # Look for pattern like: [default: /some/path.yaml]
-                match = re.search(r'\[default:\s*(.*?)\]', line)
+                match = re.search(r"\[default:\s*(.*?)\]", line)
                 if match:
                     return match.group(1)
         return None
@@ -77,7 +79,8 @@ def get_default_config_values():
 
     return model_config_path, calib_config_path
 
-def get_laser_polio_deps( study_name ):
+
+def get_laser_polio_deps(study_name):
     try:
         result = subprocess.run(
             [
@@ -115,10 +118,20 @@ def run_docker_calibration(study_name, num_trials=2):
 
     # Step 2: Launch container
     docker_command = [
-        'docker', 'run', '--rm', '--name', 'calib_worker', '--network', 'optuna-network',
-        '-e', f'STORAGE_URL={STORAGE_URL}',
-        'idm-docker-staging.packages.idmod.org/laser/laser-polio:latest',
-        '--study-name', study_name, '--num-trials', str(num_trials)
+        "docker",
+        "run",
+        "--rm",
+        "--name",
+        "calib_worker",
+        "--network",
+        "optuna-network",
+        "-e",
+        f"STORAGE_URL={STORAGE_URL}",
+        "idm-docker-staging.packages.idmod.org/laser/laser-polio:latest",
+        "--study-name",
+        study_name,
+        "--num-trials",
+        str(num_trials),
     ]
 
     result = subprocess.run(docker_command, capture_output=True, text=True)
@@ -128,16 +141,18 @@ def run_docker_calibration(study_name, num_trials=2):
 
     print(f"✅ Calibration complete for study: {study_name}")
 
+
 if __name__ == "__main__":
     study_name = "calib_demo_nigeria2"
     run_docker_calibration(study_name, num_trials=1)
 
     # Step 3: Post-execution study reporting
-    from calib_report import plot_stuff, save_study_results
+    from calib_report import plot_stuff
+    from calib_report import save_study_results
+
     storage_url = STORAGE_URL2
     study = optuna.load_study(study_name=study_name, storage=storage_url)
     study.storage_url = storage_url
     study.study_name = study_name
-    save_study_results( study, Path(study_name)  ) 
-    plot_stuff( study_name, study.storage_url )
-
+    save_study_results(study, Path(study_name))
+    plot_stuff(study_name, study.storage_url)

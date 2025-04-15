@@ -9,7 +9,6 @@ import numpy as np
 import optuna
 import pandas as pd
 import yaml
-import os
 
 # from logic import objective
 import laser_polio as lp
@@ -50,7 +49,7 @@ def calc_calib_targets_paralysis(filename, model_config_path=None):
             regional_cases.append(total)
         targets["regional_cases"] = np.array(regional_cases)
 
-    print( f"{targets=}" )
+    print(f"{targets=}")
     return targets
 
 
@@ -87,7 +86,7 @@ def calc_calib_targets(filename, model_config_path=None):
             regional_cases.append(total)
         targets["regional_cases"] = np.array(regional_cases)
 
-    print( f"{targets=}" )
+    print(f"{targets=}")
     return targets
 
 
@@ -209,10 +208,9 @@ def run_worker_main(
     print(f"[INFO] Running study: {study_name} with {num_trials} trials")
     storage_url = calib_db.get_storage()
 
-
     sampler = optuna.samplers.RandomSampler(seed=42)  # seed is optional for reproducibility
     try:
-        study = optuna.load_study(study_name=study_name, storage=storage_url) # , sampler=sampler)
+        study = optuna.load_study(study_name=study_name, storage=storage_url)  # , sampler=sampler)
     except Exception:
         print(f"[INFO] Creating new study: '{study_name}'")
         study = optuna.create_study(study_name=study_name, storage=storage_url)
@@ -235,4 +233,3 @@ def run_worker_main(
     )
 
     study.optimize(wrapped_objective, n_trials=num_trials)
-
