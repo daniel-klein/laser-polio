@@ -1,26 +1,56 @@
 import subprocess
+import uuid
 import os
 import json
 import yaml
 import optuna
 from pathlib import Path
+import re
 
 # From inside container
 STORAGE_URL = "mysql://root@optuna-mysql:3306/optuna_db"
 # From outside container
 STORAGE_URL2 = "mysql+pymysql://root@127.0.0.1:3306/optuna_db"
+IMAGE_NAME = "idm-docker-staging.packages.idmod.org/laser/laser-polio:latest"
 
 def create_study_directory(study_name, model_config, calib_config):
     """Create a study directory and dump the model_config and calib_config."""
     study_dir = Path(study_name)
     study_dir.mkdir(parents=True, exist_ok=True)
 
-    with open(study_dir / "model_config.yaml", "w") as model_file:
-        model_file.write(model_config)
-    with open(study_dir / "calib_config.yaml", "w") as calib_file:
-        calib_file.write(calib_config)
+    source_paths = [ model_config, calib_config ]
+    dest_paths = [
+        study_dir / "model_config.yaml",
+        study_dir / "calib_config.yaml",
+    ]
+
+    # Create a dictionary mapping container_path → host_path
+    files_to_copy = dict(zip(source_paths, dest_paths))
+
+    docker_copy_from_image( IMAGE_NAME, files_to_copy, study_dir )
 
     print(f"✅ Study directory '{study_name}' created with config files")
+
+def docker_copy_from_image(image: str, files_to_copy: dict, output_dir: Path):
+    """
+    Copy files from a Docker image (not a running container) to the host filesystem.
+
+    Args:
+        image (str): Docker image name (e.g., "laser/laser-polio:latest")
+        files_to_copy (dict): Mapping from container_path to output_filename (host-relative)
+        output_dir (Path): Destination directory on host
+    """
+    container_name = f"temp_container_{uuid.uuid4().hex[:8]}"
+    try:
+        subprocess.run(["docker", "create", "--name", container_name, image], check=True)
+
+        for container_path, host_filename in files_to_copy.items():
+            dest_path = output_dir / host_filename
+            dest_path.parent.mkdir(parents=True, exist_ok=True)
+            subprocess.run(["docker", "cp", f"{container_name}:{container_path}", str(dest_path)], check=True)
+
+    finally:
+        subprocess.run(["docker", "rm", container_name], check=False)
 
 def get_default_config_values():
     """Run docker container with --help to retrieve default values for configs."""
@@ -33,60 +63,19 @@ def get_default_config_values():
 
     help_output = result.stdout
 
-    # Naive parsing: adjust based on actual help output format
     def extract_path(flag_name):
         for line in help_output.splitlines():
             if flag_name in line:
-                parts = line.strip().split()
-                for i, part in enumerate(parts):
-                    if part.startswith(flag_name):
-                        return parts[i+1] if i+1 < len(parts) else None
+                # Look for pattern like: [default: /some/path.yaml]
+                match = re.search(r'\[default:\s*(.*?)\]', line)
+                if match:
+                    return match.group(1)
         return None
 
     model_config_path = extract_path("--model-config")
     calib_config_path = extract_path("--calib-config")
 
-    # Read contents of the default config files (assumes they are part of the container image)
-    model_config = f"# Default path: {model_config_path}\n"
-    calib_config = f"# Default path: {calib_config_path}\n"
-
-    return model_config, calib_config
-
-def collect_study_results(study_name, output_dir):
-    """Connect to the Optuna DB and write post-execution results to the output directory."""
-    study = optuna.load_study(study_name=study_name, storage=STORAGE_URL2)
-
-    best = study.best_trial
-    trials_df = study.trials_dataframe(attrs=("number", "value", "params", "state"))
-
-    with open(output_dir / "best_params.json", "w") as f:
-        json.dump(best.params, f, indent=4)
-
-    with open(output_dir / "study_metadata.json", "w") as f:
-        json.dump(study.user_attrs, f, indent=4)
-
-    trials_df.to_csv(output_dir / "trials.csv", index=False)
-
-    print(f"Post-execution Optuna results saved to '{output_dir}'")
-
-def collect_study_results_cli(study_name, output_dir, storage_url="mysql://root@optuna-mysql:3306/optuna_db"):
-    """Run Optuna CLI commands to extract study info and save them to files."""
-    output_dir.mkdir(exist_ok=True)
-
-    def run_optuna_cmd(args, outfile):
-        """Helper to run an optuna CLI command and write output to a file."""
-        full_cmd = ['optuna'] + args + ['--study-name', study_name, '--storage', storage_url]
-        result = subprocess.run(full_cmd, capture_output=True, text=True)
-        if result.returncode != 0:
-            raise RuntimeError(f"Optuna CLI failed: {' '.join(full_cmd)}\n{result.stderr}")
-        print(f"Saved {outfile}")
-
-    # Collect stats, best trial, and trials list
-    #run_optuna_cmd(['studies', 'stats'], "study_stats.txt")
-    run_optuna_cmd(['studies', 'best-trial'], "best_trial.txt")
-    run_optuna_cmd(['studies', 'trials'], "trials.txt")  # Not CSV, but text summary
-
-    print("✅ Post-execution CLI-based Optuna reporting complete.")
+    return model_config_path, calib_config_path
 
 def get_laser_polio_deps( study_name ):
     try:
@@ -139,11 +128,16 @@ def run_docker_calibration(study_name, num_trials=2):
 
     print(f"✅ Calibration complete for study: {study_name}")
 
-    # Step 3: Post-execution study reporting
-    collect_study_results(study_name, study_path)
-    #collect_study_results_cli(study_name, study_path) # , storage_url="sqlite:///optuna.db")
-    from calib_report import plot_stuff
-    plot_stuff( study_name, STORAGE_URL2 )
-
 if __name__ == "__main__":
-    run_docker_calibration("test_polio_calb", num_trials=2)
+    study_name = "calib_demo_nigeria2"
+    run_docker_calibration(study_name, num_trials=1)
+
+    # Step 3: Post-execution study reporting
+    from calib_report import plot_stuff, save_study_results
+    storage_url = STORAGE_URL2
+    study = optuna.load_study(study_name=study_name, storage=storage_url)
+    study.storage_url = storage_url
+    study.study_name = study_name
+    save_study_results( study, Path(study_name)  ) 
+    plot_stuff( study_name, study.storage_url )
+
