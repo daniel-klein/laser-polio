@@ -1,4 +1,3 @@
-import numpy as np
 import sciris as sc
 
 import laser_polio as lp
@@ -30,7 +29,5 @@ sim = lp.run_sim(
     results_path=results_path,
     seed=1,
 )
-
-print(f"Total I: {np.sum(sim.results.I)}")
 
 sc.printcyan("Done.")
