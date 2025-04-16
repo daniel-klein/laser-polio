@@ -610,6 +610,7 @@ def compute_infections_nb(disease_state, node_id, acq_risk_multiplier, beta_per_
         if disease_state[i] == 0:  # susceptible
             nd = node_id[i]
             # base probability from node-level infection rate
+            # TODO double check this logic & math from Kurt - should it be normalized???
             prob_infection = beta_per_node[nd] * acq_risk_multiplier[i]
             # Keep a sum of these probabilities
             tid = nb.get_thread_id()
@@ -801,10 +802,6 @@ class Transmission_ABM:
         self.do_ni_time = 0
 
     def step(self):
-        def fast_beta():
-            beta_ind_sums = compute_beta_ind_sums(node_ids, infectivity, disease_state, len(self.nodes))
-            return beta_ind_sums
-
         # Manual debugging of transmission
         if self.verbose >= 3:
             # print(f"{self.sim.t=}")
@@ -812,14 +809,15 @@ class Transmission_ABM:
             ds = self.people.disease_state[: self.people.count]
             node_id = self.people.node_id[: self.people.count]
             daily_infectivity = self.people.daily_infectivity[: self.people.count]
+            risk = self.people.acq_risk_multiplier[: self.people.count]
 
             # Log timestep
             logger.info(f"TIMESTEP: {self.sim.t}")
 
-            # Let's check the average infectivity for everyone
-            obs_mean_infectivity = np.mean(daily_infectivity)
-            exp_mean_infectivity = 14 / 24
-            logger.info(f"{self.sim.t} Observed mean infectivity: {obs_mean_infectivity:.4f}, Expected: {exp_mean_infectivity:.4f}")
+            # # Let's check the average infectivity for everyone
+            # obs_mean_infectivity = np.mean(daily_infectivity)
+            # exp_mean_infectivity = 14 / 24
+            # logger.info(f"{self.sim.t} Observed mean infectivity: {obs_mean_infectivity:.4f}, Expected: {exp_mean_infectivity:.4f}")
 
             # Go node by node
             infecteds = np.where(ds == 2)
@@ -833,6 +831,7 @@ class Transmission_ABM:
                 # Check the expected & observed infectivity
                 exp_infectivity = num_infecteds * self.sim.pars.r0 / 24
                 obs_infectivity = node_beta_sum = np.sum(daily_infectivity[(node_id == node) & (ds == 2)])
+                exp_infs_simple = obs_infectivity * num_susceptibles / num_alive
 
                 # Calc beta for this node
                 beta_seasonality = lp.get_seasonality(self.sim)
@@ -841,17 +840,30 @@ class Transmission_ABM:
 
                 per_agent_infection_rate = beta / np.clip(num_alive, 1, None)
                 base_prob_infection = 1 - np.exp(-per_agent_infection_rate)
-                expected_infections = base_prob_infection * num_susceptibles
+                exp_infections_using_infectivity = base_prob_infection * num_susceptibles
+
+                mean_risk = np.mean(risk[(node_id == node) & (ds == 0)])
+
+                R0 = self.sim.pars.r0
+                infectious_period = 24
+                beta_manual = R0 / infectious_period
+                lambda_ = beta_manual * num_infecteds / num_alive * beta_seasonality * r0_scalar
+                p_infection = 1 - np.exp(-lambda_)
+                exp_infections_manual = p_infection * num_susceptibles
 
                 # Log detailed node-level stats
                 logger.info(
                     f"MANUAL CALCS: "
-                    f"Node {node}: S={num_susceptibles}, I={num_infecteds}, Alive={num_alive}, "
-                    f"Obs infectivity={obs_infectivity:.2f}, Exp infectivity={exp_infectivity:.2f}, "
-                    f"r0={self.sim.pars.r0}, beta_seasonality={beta_seasonality:.4f}, r0_scalar={r0_scalar:.4f}, beta={beta:.4f}, "
-                    f"per_agent_infection_rate={per_agent_infection_rate:.4f}, base_prob_infection={base_prob_infection:.4f}, "
-                    f"expected_infections={expected_infections:.2f}, "
+                    f"Node {node}: S={num_susceptibles}, I={num_infecteds}, Alive={num_alive}, frac_I={num_infecteds / num_alive:.2f}, frac_S={num_susceptibles / num_alive:.2f}, "
                 )
+                logger.info(
+                    f"Exp infections manual (lambda = R0 / inf_period * I / N * scalars; new I = S * (1-exp(-lambda)))={exp_infections_manual:.2f}, "  # Obs infectivity={obs_infectivity:.2f}, Exp infectivity={exp_infectivity:.2f},
+                )
+                logger.info(
+                    f"r0={self.sim.pars.r0}, beta_seasonality={beta_seasonality:.4f}, r0_scalar={r0_scalar:.4f}, beta={beta:.4f}, "
+                    f"base_prob_infection={base_prob_infection:.4f}, mean_risk={mean_risk:.4f}, "
+                )
+                logger.info(f"Exp infections using individual infectivity ={exp_infections_using_infectivity:.2f}, ")
 
         # 1) Sum up the total amount of infectivity shed by all infectious agents within a node.
         # This is the daily number of infections that these individuals would be expected to generate
@@ -861,7 +873,7 @@ class Transmission_ABM:
         node_ids = self.people.node_id[: self.people.count]
         infectivity = self.people.daily_infectivity[: self.people.count]
         risk = self.people.acq_risk_multiplier[: self.people.count]
-        node_beta_sums = fast_beta()
+        node_beta_sums = compute_beta_ind_sums(node_ids, infectivity, disease_state, len(self.nodes))
 
         # 2) Spatially redistribute infectivity among nodes
         transfer = (node_beta_sums * self.network).astype(np.float64)  # Don't round here, we'll handle fractional infections later
@@ -887,7 +899,7 @@ class Transmission_ABM:
 
         if self.verbose >= 3:
             # Log the number of people in each disease state
-            def fmt(arr, precision=6):
+            def fmt(arr, precision=2):
                 """Format NumPy arrays as single-line strings with no wrapping."""
                 return np.array2string(
                     np.asarray(arr),  # Ensures even scalars/lists work
@@ -907,6 +919,10 @@ class Transmission_ABM:
             logger.info(f"Base prob infection: {fmt(base_prob_infection)}")
             logger.info(f"Exposure sums: {fmt(exposure_sums)}")
             logger.info(f"New infections: {fmt(new_infections)}")
+            total_expected = np.sum(exposure_sums)
+            total_realized = np.sum(new_infections)
+            logger.info(f"Expected infections: {total_expected:.2f}, Realized infections: {total_realized}")
+            logger.info("")
 
     def log(self, t):
         # Get the counts for each node in one pass
