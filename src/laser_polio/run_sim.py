@@ -83,8 +83,15 @@ def run_sim(config=None, verbose=1, **kwargs):
     ri = df_comp.set_index("dot_name").loc[dot_names, "ri_eff"].values
     sia_re = df_comp.set_index("dot_name").loc[dot_names, "sia_random_effect"].values
     reff_re = df_comp.set_index("dot_name").loc[dot_names, "reff_random_effect"].values
+    # TODO Need to REDO random effect probs since they might've been based on the wrong data. Also, need to do the processing before filtering because of the centering & scaling
     sia_prob = lp.calc_sia_prob_from_rand_eff(sia_re)
-    r0_scalars = lp.calc_r0_scalars_from_rand_eff(reff_re)
+    # r0_scalars = lp.calc_r0_scalars_from_rand_eff(reff_re)
+    # Calcultate geographic R0 modifiers based on underweight data (one for each node)
+    underwt = df_comp.set_index("dot_name").loc[dot_names, "prop_underwt"].values
+    r0_scalars = (1 / (1 + np.exp(24 * (0.22 - underwt)))) + 0.2  # The 0.22 is the mean of Nigeria underwt
+    # # Check Zamfara means
+    # print(f"{underwt[-14:]}")
+    # print(f"{r0_scalars[-14:]}")
 
     # Validate all arrays match
     assert all(len(arr) == len(dot_names) for arr in [dist_matrix, init_immun, node_lookup, init_prevs, pop, cbr, ri, sia_prob, r0_scalars])
