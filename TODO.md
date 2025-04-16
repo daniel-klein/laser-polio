@@ -1,6 +1,7 @@
 # Priorities
 
 DEBUGGING
+- Plot all data inputs for visual checks
 - Check transmission function calculations. Why do we need R0 so high!?
 - Check transmission probability with real data. Why do we need R0 so high!?
 - Plot expected births?

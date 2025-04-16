@@ -19,7 +19,7 @@ results_path = "results/scan_over_r0_k_zamfara"
 # Define the range of par values to sweep
 n_pts = 5  # Number of points to simulate
 n_reps = 3
-r0_values = np.linspace(14, 200, n_pts)
+r0_values = np.linspace(5, 50, n_pts)
 gravity_k_values = np.linspace(1.0, 100.0, n_pts)
 
 
