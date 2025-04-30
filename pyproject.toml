@@ -18,7 +18,7 @@ maintainers = [
 description = "A spatial polio model built using LASER"
 readme = "README.md"
 license = {file = "LICENSE"}
-requires-python = ">=3.9"
+requires-python = ">=3.13"
 keywords = ["polio", "simulation", "laser", "spatial modeling"]
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -36,6 +36,7 @@ classifiers = [
 
 dependencies = [
     "alive_progress",
+    "calabaria @ git+https://github.com/InstituteforDiseaseModeling/calabaria.git",
     "click",
     "geopandas",
     "geopy",
@@ -43,7 +44,8 @@ dependencies = [
     "laser-core~=0.2",
     "matplotlib",
     "numba>=0.59.1",
-    "numpy>=1.26.4,<2.0.0",
+    #"numpy>=1.26.4,<2.0.0",
+    "numpy",
     "pandas",
     "pypdf",
     "pytest",
