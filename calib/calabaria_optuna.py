@@ -11,7 +11,7 @@ NUM_TRIALS = 5
 NUM_REPS = 1
 
 # --- Load model ---
-default_config = LaserPolioConfig("zamfara_test")
+default_config = LaserPolioConfig("zamfara_test", model_config=lp.root / "calib/model_configs/config_zamfara.yaml")
 
 # --- Parameter Spec ---
 
@@ -24,14 +24,15 @@ with open(calib_config) as f:
     for param in params.values():
         param["lower"] = param.pop("low")
         param["upper"] = param.pop("high")
-    specs = cb.parameters.core.ParameterSpecs.from_dict(params)
-"""
-specs = cb.parameters.core.ParameterSpecs(
+    specs = cb.ParameterSpecs.from_dict(params)
+
+print("WARNING")
+specs = cb.ParameterSpecs(
     {
-        "r0": cb.ParameterSpec(name="r0", lower=5.0, upper=15.0),
+        "x_r0": cb.ParameterSpec(name="x_r0", lower=0.5, upper=2.0, transform="log10"),
     }
 )
-"""
+
 
 model = LaserPolioModel(config=default_config, pars=cb.ParameterSet(specs=specs))
 
@@ -40,11 +41,19 @@ actual_data_file = lp.root / "examples/calib_demo_zamfara/synthetic_infection_co
 obs_df = pl.read_csv(actual_data_file).with_columns((pl.col("S") + pl.col("E") + pl.col("I") + pl.col("R")).alias("N"))
 
 # --- Target ---
+# total_infected = obs_df["I"].sum()
+total_infected = obs_df.select(pl.col("I").sum().alias("total_infected"))
 target = cb.Target(
-    name="infected_over_time",
-    data=obs_df,
-    alignment=cb.JoinAlignment(on_cols="Time", mode="exact"),
-    evaluation=cb.eval.beta_binomial_nll(x_col="I", n_col="N"),
+    model_output="total_infected",
+    data=total_infected,
+    alignment=cb.JoinAlignment(on_cols=[], mode="exact"),
+    # evaluation=cb.eval.beta_binomial_nll(x_col="I", n_col="N"),
+    evaluation=cb.eval.Evaluator(
+        aggregator=cb.eval.IdentityAggregator(),
+        loss_fn=cb.loss.NormalNLL(obs_stdev=10, x_col="total_infected"),
+        reducer=cb.eval.MeanReducer(),
+        weight=1.0,
+    ),
 )
 
 targets = cb.Targets([target])

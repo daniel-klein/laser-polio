@@ -36,7 +36,8 @@ classifiers = [
 
 dependencies = [
     "alive_progress",
-    "calabaria @ git+https://github.com/InstituteforDiseaseModeling/calabaria.git",
+    #"calabaria @ git+https://github.com/InstituteforDiseaseModeling/calabaria.git@feature/data-extractors",
+    "calabaria",
     "click",
     "geopandas",
     "geopy",
@@ -93,6 +94,9 @@ Changelog = "https://github.com/InstituteforDiseaseModeling/laser-polio/blob/mas
 
 [project.scripts]
 laser-polio = "laser_polio.cli:run"
+ 
+[tool.uv.sources]
+calabaria = { path = "../calabaria" }
 
 [tool.ruff]
 extend-exclude = ["static", "ci/templates"]
