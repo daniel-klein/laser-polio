@@ -15,7 +15,6 @@ default_config = LaserPolioConfig("zamfara_test", model_config=lp.root / "calib/
 
 # --- Parameter Spec ---
 
-# TODO: Read from yml: calib_config or lp.root / "calib/calib_configs/calib_pars_r0.yaml"
 calib_config = lp.root / "calib/calib_configs/r0.yaml"
 with open(calib_config) as f:
     d = yaml.safe_load(f)
@@ -43,7 +42,7 @@ obs_df = pl.read_csv(actual_data_file).with_columns((pl.col("S") + pl.col("E") +
 # --- Target ---
 # total_infected = obs_df["I"].sum()
 total_infected = obs_df.select(pl.col("I").sum().alias("total_infected"))
-target = cb.Target(
+total_tgt = cb.Target(
     model_output="total_infected",
     data=total_infected,
     alignment=cb.JoinAlignment(on_cols=[], mode="exact"),
@@ -56,7 +55,31 @@ target = cb.Target(
     ),
 )
 
-targets = cb.Targets([target])
+# Compute monthly summary of the "I" column and filter for months <= 12
+monthly_cases = (
+    obs_df.with_columns((pl.col("Time") // 30 + 1).alias("month"))
+    .filter(pl.col("month") <= 12)  # Time is 0 to 365
+    .group_by("month")
+    .agg(pl.col("I").sum().alias("monthly_cases"))
+    .sort("month")
+    .select("monthly_cases")  # Select only the "monthly_cases" column
+    .transpose(include_header=True, column_names=[str(i) for i in range(1, 13)])
+)
+
+monthly_tgt = cb.Target(
+    model_output="monthly_cases",
+    data=monthly_cases,
+    alignment=cb.JoinAlignment(on_cols=[], mode="exact"),
+    # evaluation=cb.eval.beta_binomial_nll(x_col="I", n_col="N"),
+    evaluation=cb.eval.Evaluator(
+        aggregator=cb.eval.IdentityAggregator(),
+        loss_fn=cb.loss.DirichletMultinomialNLL(cols=range(1, 13)),
+        reducer=cb.eval.MeanReducer(),
+        weight=1.0,
+    ),
+)
+
+targets = cb.Targets([total_tgt])  # , monthly_tgt])
 
 # --- Build CalibrationTask ---
 dispatcher = cb.SerialSimDispatcher(model=model)
