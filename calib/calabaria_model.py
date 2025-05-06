@@ -4,6 +4,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import calabaria as cb
+import geopandas as gpd
 import numpy as np
 import pandas as pd
 import polars as pl
@@ -51,21 +52,29 @@ class LaserPolioModel(cb.BaseModel):
 
         # Extract simulation setup parameters with defaults or overrides
         cp = config.parameters.to_dict()
+
+        # Extract simulation setup parameters with defaults or overrides
         regions = cp.pop("regions", ["ZAMFARA"])
-        start_year = cp.pop("start_year", 2019)
+        start_year = cp.pop("start_year", 2018)
         n_days = cp.pop("n_days", 365)
-        pop_scale = cp.pop("pop_scale", 0.01)
+        pop_scale = cp.pop("pop_scale", 1)
         init_region = cp.pop("init_region", "ANKA")
         init_prev = cp.pop("init_prev", 0.01)
         results_path = cp.pop("results_path", "results/demo")
         actual_data = cp.pop("actual_data", "data/epi_africa_20250421.h5")
-        save_plots = cp.pop("save_plots", False)
-        save_data = cp.pop("save_data", False)
+        # save_plots = cp.pop("save_plots", False)
+        # save_data = cp.pop("save_data", False)
+        # init_pop_file = cp.pop("init_pop_file", init_pop_file)
 
         # Geography
         dot_names = lp.find_matching_dot_names(regions, lp.root / "data/compiled_cbr_pop_ri_sia_underwt_africa.csv", verbose=config.verbose)
         node_lookup = lp.get_node_lookup("data/node_lookup.json", dot_names)
-        dist_matrix = lp.get_distance_matrix(lp.root / "data/distance_matrix_africa_adm2.h5", dot_names)
+        # dist_matrix = lp.get_distance_matrix(lp.root / "data/distance_matrix_africa_adm2.h5", dot_names)
+        shp = gpd.read_file(filename="data/shp_africa_low_res.gpkg", layer="adm2")
+        shp = shp[shp["dot_name"].isin(dot_names)]
+        # Sort the GeoDataFrame by the order of dot_names
+        shp.set_index("dot_name", inplace=True)
+        shp = shp.loc[dot_names].reset_index()
 
         # Immunity
         init_immun = pd.read_hdf(lp.root / "data/init_immunity_0.5coverage_january.h5", key="immunity")
@@ -109,9 +118,7 @@ class LaserPolioModel(cb.BaseModel):
         # print(f"{r0_scalars[-14:]}")
 
         # Validate all arrays match
-        assert all(
-            len(arr) == len(dot_names) for arr in [dist_matrix, init_immun, node_lookup, init_prevs, pop, cbr, ri, sia_prob, r0_scalars]
-        )
+        assert all(len(arr) == len(dot_names) for arr in [shp, init_immun, node_lookup, init_prevs, pop, cbr, ri, sia_prob, r0_scalars])
 
         # Setup results path
         if results_path is None:
@@ -134,17 +141,15 @@ class LaserPolioModel(cb.BaseModel):
             "init_immun": init_immun,
             "init_prev": init_prevs,
             "r0_scalars": r0_scalars,
-            "distances": dist_matrix,
+            "distances": None,
+            "shp": shp,
             "node_lookup": node_lookup,
             "vx_prob_ri": ri,
             "sia_schedule": sia_schedule,
             "vx_prob_sia": sia_prob,
-            "verbose": config.verbose,
+            "verbose": self.config.verbose,
             "stop_if_no_cases": False,
         }
-
-        x_r0 = param_set.values.pop("x_r0", 1.0)
-        base_pars["r0_scalars"] *= x_r0
 
         # Dynamic values passed by user/CLI/Optuna
         pars = PropertySet({**base_pars, **param_set.values})
@@ -163,6 +168,7 @@ class LaserPolioModel(cb.BaseModel):
         if pars.vx_prob_sia is not None:
             components.append(lp.SIA_ABM)
         sim.components = components
+
         sim.run()
 
         # Save results
