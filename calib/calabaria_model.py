@@ -17,32 +17,45 @@ import laser_polio as lp
 @dataclass
 class LaserPolioConfig:
     study_name: str
+    model_config: Path
     pop: int = 100_000
     init_inf: int = 1
     beta: float = 0.05
     verbose: bool = True
 
-    model_config: Path = lp.root / "calib/model_configs/config_zamfara.yaml"
-
     def __post_init__(self):
-        self.results_path = lp.root / "calib/results" / self.study_name
-
         with open(self.model_config) as f:
             self.parameters = PropertySet(yaml.safe_load(f))
 
+        if "results_path" in self.parameters:
+            self.results_path = Path(self.parameters["results_path"])
+        else:
+            self.results_path = Path(lp.root / "calib/results" / self.study_name)
 
-def make_default_specs():
-    return cb.ParameterSpecs.from_dict(
-        {
-            "r0": {"lower": 5.0, "upper": 1.0},  # , "transform": "log"
-        }
-    )
+        Path(self.results_path).mkdir(parents=True, exist_ok=True)
+        return
 
 
 @dataclass
 class LaserPolioModel(cb.BaseModel):
     config: LaserPolioConfig
     pars: cb.ParameterSet
+
+    def extract_actual_data(self):
+        # Extract "actual_data" from the h5 file
+        config = self.config
+        cp = config.parameters.to_dict()
+
+        actual_data = cp.pop("actual_data", lp.root / "data/epi_africa_20250421.h5")
+        regions = cp.pop("regions", ["ZAMFARA"])
+        dot_names = lp.find_matching_dot_names(regions, lp.root / "data/compiled_cbr_pop_ri_sia_underwt_africa.csv", verbose=config.verbose)
+        node_lookup = lp.get_node_lookup(lp.root / "data/node_lookup.json", dot_names)
+        start_year = cp.pop("start_year", 2018)
+        n_days = cp.pop("n_days", 365)
+
+        epi = lp.get_epi_data(actual_data, dot_names, node_lookup, start_year, n_days)
+        epi.rename(columns={"cases": "P"}, inplace=True)
+        return epi
 
     def parameters(self):
         return self.pars
@@ -61,16 +74,16 @@ class LaserPolioModel(cb.BaseModel):
         init_region = cp.pop("init_region", "ANKA")
         init_prev = cp.pop("init_prev", 0.01)
         results_path = cp.pop("results_path", "results/demo")
-        actual_data = cp.pop("actual_data", "data/epi_africa_20250421.h5")
+        actual_data = cp.pop("actual_data", lp.root / "data/epi_africa_20250421.h5")
         # save_plots = cp.pop("save_plots", False)
         # save_data = cp.pop("save_data", False)
         # init_pop_file = cp.pop("init_pop_file", init_pop_file)
 
         # Geography
         dot_names = lp.find_matching_dot_names(regions, lp.root / "data/compiled_cbr_pop_ri_sia_underwt_africa.csv", verbose=config.verbose)
-        node_lookup = lp.get_node_lookup("data/node_lookup.json", dot_names)
+        node_lookup = lp.get_node_lookup(lp.root / "data/node_lookup.json", dot_names)
         # dist_matrix = lp.get_distance_matrix(lp.root / "data/distance_matrix_africa_adm2.h5", dot_names)
-        shp = gpd.read_file(filename="data/shp_africa_low_res.gpkg", layer="adm2")
+        shp = gpd.read_file(filename=lp.root / "data/shp_africa_low_res.gpkg", layer="adm2")
         shp = shp[shp["dot_name"].isin(dot_names)]
         # Sort the GeoDataFrame by the order of dot_names
         shp.set_index("dot_name", inplace=True)
@@ -119,17 +132,6 @@ class LaserPolioModel(cb.BaseModel):
 
         # Validate all arrays match
         assert all(len(arr) == len(dot_names) for arr in [shp, init_immun, node_lookup, init_prevs, pop, cbr, ri, sia_prob, r0_scalars])
-
-        # Setup results path
-        if results_path is None:
-            results_path = Path("results/default")  # Provide a default path
-
-        # Load the actual case data
-        epi = lp.get_epi_data(actual_data, dot_names, node_lookup, start_year, n_days)
-        epi.rename(columns={"cases": "P"}, inplace=True)
-        Path(results_path).mkdir(parents=True, exist_ok=True)
-        results_path = Path(results_path)
-        epi.to_csv(results_path / "actual_data.csv", index=False)
 
         # Base parameters (can be overridden)
         base_pars = {
@@ -216,9 +218,21 @@ class LaserPolioModel(cb.BaseModel):
     def extract_monthly_cases(self, sim, seed):
         # 3. Monthly cases
         simulation_results = self.extract_timeseries(sim, seed)
-        monthly_cases = pl.DataFrame(
-            {"monthly_cases": simulation_results[["month", "I"]].group_by("month").sum().sort("month")}
-        ).with_columns(pl.lit(seed, dtype=pl.Int64).alias("seed"))
+
+        # monthly_cases = pl.DataFrame(
+        #    {"monthly_cases": simulation_results[["month", "I"]].group_by("month").sum().sort("month")}
+        # ).with_columns(pl.lit(seed, dtype=pl.Int64).alias("seed"))
+
+        monthly_cases = (
+            simulation_results.with_columns((pl.col("timestep") // 30 + 1).alias("month"))
+            .filter(pl.col("month") <= 12)  # Time is 0 to 365
+            .group_by("month")
+            .agg(pl.col("I").sum().alias("monthly_cases"))
+            .sort("month")
+            .select("monthly_cases")  # Select only the "monthly_cases" column
+            .transpose(include_header=True, column_names=[str(i) for i in range(1, 13)])
+        )
+
         return monthly_cases
 
     @cb.model_output("regional_cases")
@@ -243,5 +257,4 @@ laser_polio_model_bundle = SimpleNamespace(
     name="laser_polio",
     Config=LaserPolioConfig,
     Model=LaserPolioModel,
-    default_specs=make_default_specs(),
 )

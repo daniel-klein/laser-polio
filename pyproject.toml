@@ -36,8 +36,8 @@ classifiers = [
 
 dependencies = [
     "alive_progress",
-    #"calabaria @ git+https://github.com/InstituteforDiseaseModeling/calabaria.git@feature/data-extractors",
-    "calabaria",
+    "calabaria @ git+https://github.com/InstituteforDiseaseModeling/calabaria.git@main",
+    #"calabaria",
     "click",
     "geopandas",
     "geopy",
@@ -84,6 +84,10 @@ test = [
     "pytest-cov",
     "scipy",
 ]
+optuna_gpr = [
+    "torch",
+    "scikit-learn",
+]
 
 [project.urls]
 Homepage = "https://docs.idmod.org/projects/laser-polio/en/latest/"
@@ -95,8 +99,8 @@ Changelog = "https://github.com/InstituteforDiseaseModeling/laser-polio/blob/mas
 [project.scripts]
 laser-polio = "laser_polio.cli:run"
  
-[tool.uv.sources]
-calabaria = { path = "../calabaria" }
+#[tool.uv.sources]
+#calabaria = { path = "../calabaria" }
 
 [tool.ruff]
 extend-exclude = ["static", "ci/templates"]

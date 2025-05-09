@@ -8,8 +8,12 @@ import laser_polio as lp
 def calc_calib_targets_paralysis(filename, model_config_path=None, is_actual_data=True):
     """Load simulation results and extract features for comparison."""
 
-    # Load the data & config
-    df = pd.read_csv(filename)
+    if isinstance(filename, pd.DataFrame):
+        df = filename
+    else:
+        # Load the data & config
+        df = pd.read_csv(filename)
+
     with open(model_config_path) as f:
         model_config = yaml.safe_load(f)
 
@@ -28,7 +32,8 @@ def calc_calib_targets_paralysis(filename, model_config_path=None, is_actual_dat
         scale_factor = 1 / 2000.0
         # The actual data is in months & the sim has a tendency to rap into the next year (e.g., 2020-01-01) so we need to exclude and dates beyond the last month of the actual data
         max_date = lp.find_latest_end_of_month(df["date"])
-        df = df[df["date"] <= max_date]
+        if max_date:
+            df = df[df["date"] <= max_date]
 
     targets = {}
 
