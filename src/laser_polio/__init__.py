@@ -11,3 +11,4 @@ from .utils import *  # noqa F403
 __version__ = "0.1.18"
 
 root = Path(__file__).resolve().parents[2]
+print(f"Laser Polio root path: {root}")
