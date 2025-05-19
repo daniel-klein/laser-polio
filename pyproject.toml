@@ -59,7 +59,7 @@ dependencies = [
 ]
 
 [tool.setuptools.package-data]
-"laser_polio" = ["data/*.csv", "data/*.h5", "data/*.json", "data/*.gpkg", "*.py"]
+"laser_polio" = ["*.csv", "*.h5", "*.json", "*.gpkg", "*.py"]
 "examples" = ["**/*"]
 
 [tool.setuptools]
