@@ -9,7 +9,10 @@ def calc_calib_targets_paralysis(filename, model_config_path=None, is_actual_dat
     """Load simulation results and extract features for comparison."""
 
     # Load the data & config
-    df = pd.read_csv(filename)
+    if isinstance(filename, pd.DataFrame):
+        df = filename
+    else:
+        df = pd.read_csv(filename)
     with open(model_config_path) as f:
         model_config = yaml.safe_load(f)
 
