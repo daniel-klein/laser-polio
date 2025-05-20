@@ -1028,6 +1028,7 @@ def tx_step_prep_nb(
     r0_scalars,  # per node R0 scaling factor
     alive_counts,  # number of alive agents per node (for scaling)
     risks,  # per agent susceptibility (heterogeneous)
+    node_seeding_dispersion,
 ):
     # Step 1: Use parallelized loop to obtain per node sums or counts of:
     #  - exposure (susceptibility/node)
@@ -1045,7 +1046,8 @@ def tx_step_prep_nb(
             tl_sus_by_node[tid, nid] += 1
         if state == 2:
             tl_beta_by_node[nb.get_thread_id(), node_ids[i]] += daily_infectivity[i]
-    beta_by_node = tl_beta_by_node.sum(axis=0)  # Sum across threads
+    beta_by_node_pre = tl_beta_by_node.sum(axis=0)  # Sum across threads
+    beta_by_node = beta_by_node_pre.copy()  # Copy to avoid modifying the original
     exposure_by_node = tl_exposure_by_node.sum(axis=0)
     sus_by_node = tl_sus_by_node.sum(axis=0)  # Sum across threads
 
@@ -1068,7 +1070,17 @@ def tx_step_prep_nb(
     # Step 5: Compute the number of new infections per node
     new_infections = np.empty(num_nodes, dtype=np.int32)
     for i in nb.prange(num_nodes):
-        new_infections[i] = np.random.poisson(exposure_by_node[i])
+        if exposure_by_node[i] == 0:
+            new_infections[i] = 0
+        elif beta_by_node_pre[i] == 0:
+            # Seeding infections in a node, over-disperse to make takeoff more challenging
+            desired_mean = exposure_by_node[i]  # Matches poisson
+            r_int = max(1, int(np.round(node_seeding_dispersion)))
+            p = r_int / (r_int + desired_mean)  # Matching mean
+
+            new_infections[i] = np.random.negative_binomial(r_int, p)
+        else:
+            new_infections[i] = np.random.poisson(exposure_by_node[i])  # Business as usual
 
     return beta_by_node, base_prob_inf, exposure_by_node, new_infections, sus_by_node
 
@@ -1377,6 +1389,7 @@ class Transmission_ABM:
                 self.r0_scalars,
                 alive_counts,
                 risk,
+                self.sim.pars.node_seeding_dispersion,
             )
 
             # Manual validation

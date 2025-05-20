@@ -38,6 +38,7 @@ default_pars = PropertySet(
         "node_lookup": None,  # Node info (node_id are keys, dict contains dot_name, lat, lon)
         "distances": np.array([[0, 100], [100, 0]]),  # Distance in km between nodes
         # Migration
+        "node_seeding_dispersion": 1,  # INTEGER (or will round) - negative binomial "k" (also called "r" or "size") parameter for the first importation into each node, 1 is Poisson.
         "migration_method": "radiation",  # Migration method: "gravity" or "radiation"
         "radiation_k": 0.5,  # Radiation model scaling constant. Based on testing, this value should be between 0.0 and ~3 for Nigeria.
         "gravity_k": 1.0,  # Gravity scaling constant
