@@ -1029,6 +1029,7 @@ def tx_step_prep_nb(
     alive_counts,  # number of alive agents per node (for scaling)
     risks,  # per agent susceptibility (heterogeneous)
     node_seeding_dispersion,
+    node_seeding_zero_inflation,
 ):
     # Step 1: Use parallelized loop to obtain per node sums or counts of:
     #  - exposure (susceptibility/node)
@@ -1074,11 +1075,14 @@ def tx_step_prep_nb(
             new_infections[i] = 0
         elif beta_by_node_pre[i] == 0:
             # Seeding infections in a node, over-disperse to make takeoff more challenging
-            desired_mean = exposure_by_node[i]  # Matches poisson
+            desired_mean = exposure_by_node[i] / (1 - node_seeding_zero_inflation)  # Matches poisson, increased for zero-inflation
             r_int = max(1, int(np.round(node_seeding_dispersion)))
             p = r_int / (r_int + desired_mean)  # Matching mean
 
-            new_infections[i] = np.random.negative_binomial(r_int, p)
+            if np.random.rand() < node_seeding_zero_inflation:
+                new_infections[i] = 0
+            else:
+                new_infections[i] = np.random.negative_binomial(r_int, p)
         else:
             new_infections[i] = np.random.poisson(exposure_by_node[i])  # Business as usual
 
@@ -1390,6 +1394,7 @@ class Transmission_ABM:
                 alive_counts,
                 risk,
                 self.sim.pars.node_seeding_dispersion,
+                self.sim.pars.node_seeding_zero_inflation,
             )
 
             # Manual validation
