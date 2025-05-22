@@ -1076,11 +1076,17 @@ def tx_step_prep_nb(
         elif beta_by_node_pre[i] == 0:
             # Over-disperse seeded infections to make takeoff more challenging
             # Apply only to nodes with zero local transmission. All infectivity is coming from neighboring nodes.
+
+            # Handle edge case where zero inflation is 100%
+            if node_seeding_zero_inflation >= 1.0:
+                new_infections[i] = 0
+                continue
             
-            # Target mean number of infections (exposure), scaled up to compensate for zeros
+            # Adjust mean to account for expected zero inflation
             desired_mean = exposure_by_node[i] / (1 - node_seeding_zero_inflation)  # E[X] matches Poisson on average, increased for zero-inflation
-            r_int = max(1, int(np.round(node_seeding_dispersion)))  # Dispersion parameter (r): controls variance
-            p = r_int / (r_int + desired_mean)  # Compute success probability for negative binomial. Matching mean
+            # Compute dispersion and success probability for Negative Binomial
+            r_int = max(1, int(np.round(node_seeding_dispersion)))
+            p = r_int / (r_int + desired_mean)
 
             # Apply zero inflation
             if np.random.rand() < node_seeding_zero_inflation:
