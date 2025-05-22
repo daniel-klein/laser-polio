@@ -1074,17 +1074,22 @@ def tx_step_prep_nb(
         if exposure_by_node[i] == 0:
             new_infections[i] = 0
         elif beta_by_node_pre[i] == 0:
-            # Seeding infections in a node, over-disperse to make takeoff more challenging
-            desired_mean = exposure_by_node[i] / (1 - node_seeding_zero_inflation)  # Matches poisson, increased for zero-inflation
-            r_int = max(1, int(np.round(node_seeding_dispersion)))
-            p = r_int / (r_int + desired_mean)  # Matching mean
+            # Over-disperse seeded infections to make takeoff more challenging
+            # Apply only to nodes with zero local transmission. All infectivity is coming from neighboring nodes.
+            
+            # Target mean number of infections (exposure), scaled up to compensate for zeros
+            desired_mean = exposure_by_node[i] / (1 - node_seeding_zero_inflation)  # E[X] matches Poisson on average, increased for zero-inflation
+            r_int = max(1, int(np.round(node_seeding_dispersion)))  # Dispersion parameter (r): controls variance
+            p = r_int / (r_int + desired_mean)  # Compute success probability for negative binomial. Matching mean
 
+            # Apply zero inflation
             if np.random.rand() < node_seeding_zero_inflation:
                 new_infections[i] = 0
             else:
                 new_infections[i] = np.random.negative_binomial(r_int, p)
         else:
-            new_infections[i] = np.random.poisson(exposure_by_node[i])  # Business as usual
+            # Nodes with pre-existing local transmission sample should have business as usual and sample from standard Poisson
+            new_infections[i] = np.random.poisson(exposure_by_node[i])
 
     return beta_by_node, base_prob_inf, exposure_by_node, new_infections, sus_by_node
 
