@@ -143,6 +143,8 @@ class SEIR_ABM:
                 pars.seed = now.microsecond ^ int(now.timestamp())
                 if self.verbose >= 1:
                     sc.printred(f"No seed provided. Using random seed of {pars.seed}.")
+            elif self.verbose >= 1:
+                sc.printred(f"Using user-provided seed of {pars.seed}.")
             set_seed(pars.seed)
 
             # Setup time
@@ -1053,8 +1055,8 @@ def tx_step_prep_nb(
     sus_by_node = tl_sus_by_node.sum(axis=0)  # Sum across threads
 
     # Step 2: Compute the force of infection for each node accounting for immigration and emmigration
-    transfer = beta_by_node * network
-    beta_by_node += transfer.sum(axis=1) - transfer.sum(axis=0)  # Add incoming, subtract outgoing
+    transfer = (beta_by_node * network.T).T
+    beta_by_node += transfer.sum(axis=0) - transfer.sum(axis=1)  # Add incoming, subtract outgoing
     beta_by_node = np.maximum(beta_by_node, 0)
 
     # Step 3: Scale by seasonality and R0 scalars
